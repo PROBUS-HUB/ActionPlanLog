@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>訪問管理台帳</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#fff;--bg2:#F2F4F7;--bg3:#E4E8EF;
+  --text:#0D1117;--text2:#4A5568;--text3:#8A94A6;
+  --border:#D1D9E0;--border2:#B0BAC9;
+  --blue:#1A56DB;--blue-lt:#EBF3FF;--blue-mid:#2563EB;
+  --green:#166534;--green-lt:#DCFCE7;
+  --amber:#92400E;--amber-lt:#FEF3C7;
+  --red:#991B1B;--red-lt:#FEE2E2;
+  --navy:#0F172A;
+  --radius:6px;--radius-lg:10px;
+}
+html,body{height:100%;background:var(--bg2);font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;font-size:14px;color:var(--text);line-height:1.5}
+.app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+.header{background:var(--navy);padding:14px 16px 12px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.header-title{color:#fff;font-size:16px;font-weight:700;flex:1;letter-spacing:.3px}
+.header-sub{color:#94A3B8;font-size:11px;margin-top:1px}
+.hbtn{padding:6px 12px;border-radius:var(--radius);border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
+.hbtn:active{background:rgba(255,255,255,0.16)}
+.content{flex:1;overflow-y:auto;padding-bottom:88px}
+/* ナビ */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--navy);display:flex;padding:8px 0 max(12px,env(safe-area-inset-bottom));z-index:10}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;font-size:10px;font-weight:600;color:#64748B;background:none;border:none;letter-spacing:.2px}
+.nav-item.active{color:#60A5FA}
+.nav-pip{width:4px;height:4px;border-radius:50%;background:transparent;margin-top:2px}
+.nav-item.active .nav-pip{background:#60A5FA}
+/* 検索 */
+.search-wrap{padding:12px 14px 10px;background:var(--bg);border-bottom:1px solid var(--border)}
+.search-inner{display:flex;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:0 10px;gap:8px}
+.search-inner input{flex:1;padding:9px 0;background:none;border:none;font-size:13px;color:var(--text);outline:none}
+.search-inner span{color:var(--text3);font-size:13px}
+.section-head{padding:14px 14px 6px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;background:var(--bg2)}
+/* カード */
+.card{background:var(--bg);border-bottom:1px solid var(--border);padding:0}
+.card-main{padding:14px 14px 12px}
+.company-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.company-initial{width:44px;height:44px;border-radius:var(--radius-lg);background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;letter-spacing:-.5px}
+.company-info{flex:1;min-width:0}
+.company-name{font-size:15px;font-weight:700;color:var(--navy);line-height:1.3}
+.company-contact{font-size:12px;color:var(--text2);margin-top:2px}
+.status-badge{padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap;align-self:flex-start;margin-top:2px}
+.badge-ok{background:var(--green-lt);color:var(--green)}
+.badge-warn{background:var(--amber-lt);color:var(--amber)}
+.badge-danger{background:var(--red-lt);color:var(--red)}
+.badge-gray{background:var(--bg2);color:var(--text3)}
+/* 経過日数 */
+.elapsed-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.elapsed-num{font-size:28px;font-weight:800;color:var(--navy);line-height:1;width:54px;text-align:center;flex-shrink:0}
+.elapsed-num.warn{color:#B45309}
+.elapsed-num.danger{color:#991B1B}
+.elapsed-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.elapsed-since{font-size:12px;color:var(--text2)}
+.elapsed-next{font-size:12px;font-weight:600;margin-top:2px}
+.next-ok{color:var(--green)}.next-warn{color:#B45309}.next-danger{color:var(--red)}
+/* データグリッド */
+.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px}
+.data-cell{background:var(--bg);padding:8px 10px}
+.data-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.data-val{font-size:13px;font-weight:600;color:var(--text)}
+/* アラート */
+.alert-banner{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--radius);margin-bottom:10px;font-size:12px;font-weight:600}
+.alert-banner.warn{background:var(--amber-lt);color:var(--amber);border:1px solid #FCD34D}
+.alert-banner.danger{background:var(--red-lt);color:var(--red);border:1px solid #FCA5A5}
+.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.alert-banner.warn .alert-dot{background:#D97706}
+.alert-banner.danger .alert-dot{background:#DC2626}
+/* 契約 */
+.contract-list{margin-bottom:10px}
+.contract-item{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--bg2);border-radius:var(--radius);margin-bottom:4px;font-size:12px}
+.contract-name{font-weight:600;color:var(--text)}
+.contract-end{color:var(--text2)}
+.memo-box{background:var(--blue-lt);border-left:3px solid var(--blue-mid);border-radius:0 var(--radius) var(--radius) 0;padding:8px 10px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.5}
+/* ボタン */
+.action-row{display:flex;gap:6px}
+.abtn{flex:1;padding:9px 0;border-radius:var(--radius);font-size:12px;font-weight:600;cursor:pointer;text-align:center;border:1px solid var(--border2);background:var(--bg);color:var(--text2)}
+.abtn:active{background:var(--bg2)}
+.abtn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.abtn.primary:active{opacity:.85}
+/* FAB */
+.fab-wrap{position:fixed;bottom:80px;right:calc(50% - 215px + 14px);z-index:20}
+@media(max-width:430px){.fab-wrap{right:14px}}
+.fab{width:52px;height:52px;border-radius:50%;background:var(--blue);border:none;color:#fff;font-size:22px;cursor:pointer;box-shadow:0 4px 14px rgba(26,86,219,.4);display:flex;align-items:center;justify-content:center;font-weight:300}
+.fab:active{opacity:.85}
+.empty{padding:60px 20px;text-align:center;color:var(--text3);font-size:13px;line-height:1.8}
+.empty-icon{font-size:32px;margin-bottom:8px;opacity:.4}
+
+/* ── カレンダービュー ── */
+.cv-header{background:var(--bg);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:5}
+.cv-nav{width:36px;height:36px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cv-nav:active{background:var(--bg3)}
+.cv-month-title{flex:1;text-align:center;font-size:16px;font-weight:700;color:var(--navy)}
+.cv-today-btn{padding:5px 10px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--blue);font-size:12px;font-weight:700;cursor:pointer}
+.cv-today-btn:active{background:var(--bg3)}
+/* 凡例 */
+.cv-legend{display:flex;gap:12px;padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.cv-legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)}
+.cv-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cv-dot-visit{background:var(--blue)}
+.cv-dot-contract{background:#DC2626}
+.cv-dot-contract-warn{background:#D97706}
+.cv-dot-today{background:var(--navy)}
+/* 曜日行 */
+.cv-dow{display:grid;grid-template-columns:repeat(7,1fr);background:var(--bg);border-bottom:1px solid var(--border)}
+.cv-dow span{text-align:center;font-size:11px;font-weight:700;color:var(--text3);padding:6px 0}
+.cv-dow span:first-child{color:#B91C1C}
+.cv-dow span:last-child{color:var(--blue)}
+/* カレンダーグリッド */
+.cv-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;background:var(--border)}
+.cv-cell{background:var(--bg);min-height:64px;padding:4px 3px 3px;border:0;position:relative;cursor:default;vertical-align:top}
+.cv-cell.other{background:var(--bg2)}
+.cv-cell.is-today{background:var(--blue-lt)}
+.cv-cell.has-event{cursor:pointer}
+.cv-cell.has-event:active{background:var(--bg3)}
+.cv-date-num{font-size:12px;font-weight:700;color:var(--text);display:block;margin-bottom:3px;line-height:1}
+.cv-cell.other .cv-date-num{color:var(--text3)}
+.cv-cell.is-today .cv-date-num{color:var(--blue)}
+.cv-cell.is-sun .cv-date-num{color:#B91C1C}
+.cv-cell.is-sat .cv-date-num{color:var(--blue)}
+.cv-cell.is-today.is-sun .cv-date-num,.cv-cell.is-today.is-sat .cv-date-num{color:var(--blue)}
+.cv-today-mark{display:inline-block;background:var(--blue);color:#fff;border-radius:50%;width:18px;height:18px;text-align:center;line-height:18px;font-size:11px;font-weight:700}
+/* イベントチップ */
+.cv-event{display:block;font-size:9px;font-weight:700;padding:1px 3px;border-radius:3px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;line-height:1.4}
+.cv-event.visit{background:var(--blue);color:#fff}
+.cv-event.contract-danger{background:var(--red-lt);color:var(--red);border:1px solid #FCA5A5}
+.cv-event.contract-warn{background:var(--amber-lt);color:var(--amber);border:1px solid #FCD34D}
+.cv-event.past-visit{background:var(--bg3);color:var(--text3)}
+/* 月サマリ */
+.cv-summary{background:var(--bg);border-top:1px solid var(--border);padding:14px}
+.cv-summary-title{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.cv-summary-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg2);border-radius:var(--radius);margin-bottom:6px;cursor:pointer}
+.cv-summary-row:active{background:var(--bg3)}
+.cv-summary-date{font-size:11px;font-weight:700;color:var(--text3);width:52px;flex-shrink:0}
+.cv-summary-name{font-size:13px;font-weight:600;color:var(--navy);flex:1}
+.cv-summary-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap}
+/* 日詳細シート */
+.day-detail-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.day-detail-item:last-child{border-bottom:none}
+.day-type-bar{width:4px;border-radius:2px;flex-shrink:0;align-self:stretch;min-height:36px}
+.bar-visit{background:var(--blue)}
+.bar-contract{background:#DC2626}
+.bar-contract-warn{background:#D97706}
+.day-detail-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
+.day-detail-name{font-size:14px;font-weight:700;color:var(--navy)}
+.day-detail-sub{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* ── シート ── */
+.sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;align-items:flex-end;justify-content:center}
+.sheet-overlay.open{display:flex}
+.sheet{background:var(--bg);border-radius:14px 14px 0 0;width:100%;max-width:430px;padding:16px 16px max(24px,env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 16px}
+.sheet-title{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px}
+.form-label{display:block;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.form-input{width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:14px;color:var(--text);background:var(--bg);font-family:inherit;outline:none;margin-bottom:12px}
+.form-input:focus{border-color:var(--blue)}
+textarea.form-input{height:72px;resize:vertical}
+.form-section{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 8px;padding-top:14px;border-top:1px solid var(--border)}
+.sheet-footer{display:flex;gap:8px;margin-top:16px}
+.sfbtn{flex:1;padding:12px;border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:var(--bg);color:var(--text);font-family:inherit}
+.sfbtn:active{background:var(--bg2)}
+.sfbtn.save{background:var(--blue);color:#fff;border-color:var(--blue)}
+.sfbtn.save:active{opacity:.85}
+.crow{display:grid;grid-template-columns:1fr auto 28px;gap:6px;align-items:center;margin-bottom:6px}
+.crow input{padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);background:var(--bg);font-family:inherit;outline:none}
+.crow input:focus{border-color:var(--blue)}
+.delbtn{width:28px;height:36px;border:1px solid var(--border);border-radius:var(--radius);background:none;color:var(--text3);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.date-wrap{display:flex;gap:6px;margin-bottom:12px}
+.date-wrap input{flex:1;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:14px;color:var(--text);background:var(--bg);font-family:inherit;outline:none}
+.date-wrap input:focus{border-color:var(--blue)}
+.calbtn{flex-shrink:0;padding:0 12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--blue);cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap}
+.calbtn:active{background:var(--bg3)}
+/* 日付入力カレンダー */
+.cal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:flex-end;justify-content:center}
+.cal-overlay.open{display:flex}
+.cal-sheet{background:var(--bg);border-radius:14px 14px 0 0;width:100%;max-width:430px;padding:16px 14px max(24px,env(safe-area-inset-bottom))}
+.cal-top{display:flex;align-items:center;margin-bottom:14px}
+.cal-month{flex:1;text-align:center;font-size:15px;font-weight:700;color:var(--navy)}
+.cal-arrow{width:36px;height:36px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700}
+.cal-arrow:active{background:var(--bg3)}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px}
+.cal-dow span{text-align:center;font-size:11px;font-weight:700;color:var(--text3);padding:4px 0}
+.cal-dow span:first-child{color:#B91C1C}
+.cal-dow span:last-child{color:var(--blue)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day{height:38px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;color:var(--text)}
+.cal-day.other-month{color:var(--text3)}
+.cal-day.is-today{font-weight:800;color:var(--blue);border:2px solid var(--blue)}
+.cal-day.is-selected{background:var(--blue);color:#fff !important;font-weight:700}
+.cal-day.is-sun{color:#B91C1C}
+.cal-day.is-sat{color:var(--blue)}
+.cal-day:active{background:var(--bg2)}
+.cal-day.is-selected:active{background:var(--blue-mid)}
+.cal-foot{display:flex;gap:8px;margin-top:14px}
+.cal-foot button{flex:1;padding:11px;border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:var(--bg);color:var(--text);font-family:inherit}
+.cal-foot .cal-ok{background:var(--blue);color:#fff;border-color:var(--blue)}
+/* 履歴 */
+.hist-timeline{padding:4px 0}
+.hist-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.hist-row:last-child{border-bottom:none}
+.hist-left{display:flex;flex-direction:column;align-items:center}
+.hist-circle{width:10px;height:10px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:3px}
+.hist-line{flex:1;width:2px;background:var(--border);margin-top:4px}
+.hist-body{flex:1}
+.hist-date-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.hist-date{font-size:13px;font-weight:700;color:var(--navy)}
+.hist-chip{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700}
+.chip-blue{background:var(--blue-lt);color:var(--blue)}
+.chip-gray{background:var(--bg2);color:var(--text3)}
+.hist-memo{font-size:12px;color:var(--text2);line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div style="flex:1">
+      <div class="header-title">訪問管理台帳</div>
+      <div class="header-sub">ドラクル 営業管理システム</div>
+    </div>
+    <button class="hbtn" onclick="exportData()">書き出し</button>
+    <label class="hbtn" style="cursor:pointer">読み込み<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+  </div>
+
+  <div class="content">
+    <!-- 会社一覧 -->
+    <div id="tab-list">
+      <div class="search-wrap">
+        <div class="search-inner">
+          <span>🔍</span>
+          <input placeholder="会社名で検索..." oninput="renderList(this.value)" id="search">
+        </div>
+      </div>
+      <div id="company-list"></div>
+    </div>
+    <!-- 更新アラート -->
+    <div id="tab-alerts" style="display:none">
+      <div class="section-head">契約更新アラート</div>
+      <div id="alert-list"></div>
+    </div>
+    <!-- カレンダービュー -->
+    <div id="tab-calendar" style="display:none">
+      <div class="cv-header">
+        <button class="cv-nav" onclick="cvMove(-1)">‹</button>
+        <div class="cv-month-title" id="cv-title"></div>
+        <button class="cv-nav" onclick="cvMove(1)">›</button>
+        <button class="cv-today-btn" onclick="cvGoToday()">今月</button>
+      </div>
+      <div class="cv-legend">
+        <div class="cv-legend-item"><div class="cv-dot cv-dot-visit"></div>訪問予定</div>
+        <div class="cv-legend-item"><div class="cv-dot cv-dot-contract"></div>契約期限切れ</div>
+        <div class="cv-legend-item"><div class="cv-dot cv-dot-contract-warn"></div>契約更新まじか</div>
+        <div class="cv-legend-item" style="color:var(--text3);font-size:10px">グレー＝過去の訪問</div>
+      </div>
+      <div class="cv-dow"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+      <div class="cv-grid" id="cv-grid"></div>
+      <div class="cv-summary" id="cv-summary"></div>
+    </div>
+    <!-- 訪問予定リスト -->
+    <div id="tab-schedule" style="display:none">
+      <div class="section-head">訪問予定（近い順）</div>
+      <div id="schedule-list"></div>
+    </div>
+  </div>
+
+  <div class="fab-wrap">
+    <button class="fab" onclick="openAdd()">＋</button>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('list',this)">
+      <span>会社一覧</span><div class="nav-pip"></div>
+    </button>
+    <button class="nav-item" onclick="switchTab('calendar',this)">
+      <span>カレンダー</span><div class="nav-pip"></div>
+    </button>
+    <button class="nav-item" onclick="switchTab('alerts',this)">
+      <span>アラート</span><div class="nav-pip"></div>
+    </button>
+    <button class="nav-item" onclick="switchTab('schedule',this)">
+      <span>訪問予定</span><div class="nav-pip"></div>
+    </button>
+  </div>
+</div>
+
+<!-- 日詳細シート -->
+<div class="sheet-overlay" id="day-modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="day-modal-title">予定詳細</div>
+    <div id="day-modal-content"></div>
+    <div class="sheet-footer" style="margin-top:16px">
+      <button class="sfbtn" onclick="closeDayModal()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 会社追加・編集 -->
+<div class="sheet-overlay" id="add-modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="modal-title">会社を追加</div>
+    <label class="form-label">会社名</label>
+    <input class="form-input" id="f-name" placeholder="株式会社〇〇">
+    <label class="form-label">担当者名</label>
+    <input class="form-input" id="f-contact" placeholder="山田 太郎">
+    <label class="form-label">メモ</label>
+    <textarea class="form-input" id="f-memo" placeholder="特記事項、商談内容など"></textarea>
+    <label class="form-label">訪問間隔（日）</label>
+    <input class="form-input" id="f-interval" type="number" value="30" min="1">
+    <label class="form-label">次回訪問予定日</label>
+    <div class="date-wrap">
+      <input id="f-next" placeholder="YYYY-MM-DD" readonly>
+      <button class="calbtn" onclick="openCal('f-next')">カレンダー</button>
+    </div>
+    <label class="form-label">更新アラート（契約終了の何日前）</label>
+    <input class="form-input" id="f-alert-days" type="number" value="60" min="1">
+    <div class="form-section">契約情報（複数登録可）</div>
+    <div id="contracts-form"></div>
+    <button class="abtn" onclick="addCRow()" style="width:100%;margin-bottom:6px">＋ 契約を追加</button>
+    <div class="sheet-footer">
+      <button class="sfbtn" onclick="closeAdd()">キャンセル</button>
+      <button class="sfbtn save" onclick="saveCompany()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 訪問記録 -->
+<div class="sheet-overlay" id="visit-modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">訪問を記録する</div>
+    <label class="form-label">訪問日</label>
+    <div class="date-wrap">
+      <input id="v-date" placeholder="YYYY-MM-DD" readonly>
+      <button class="calbtn" onclick="openCal('v-date')">カレンダー</button>
+    </div>
+    <label class="form-label">訪問内容・メモ</label>
+    <textarea class="form-input" id="v-memo" placeholder="商談内容、次回への申し送りなど"></textarea>
+    <label class="form-label">次回訪問予定日</label>
+    <div class="date-wrap">
+      <input id="v-next" placeholder="YYYY-MM-DD" readonly>
+      <button class="calbtn" onclick="openCal('v-next')">カレンダー</button>
+    </div>
+    <div class="sheet-footer">
+      <button class="sfbtn" onclick="closeVisit()">キャンセル</button>
+      <button class="sfbtn save" onclick="saveVisit()">記録する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 訪問履歴 -->
+<div class="sheet-overlay" id="hist-modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="hist-title">訪問履歴</div>
+    <div class="hist-timeline" id="hist-content"></div>
+    <div class="sheet-footer" style="margin-top:16px">
+      <button class="sfbtn" onclick="closeHist()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 日付入力カレンダー -->
+<div class="cal-overlay" id="cal-overlay">
+  <div class="cal-sheet">
+    <div class="cal-top">
+      <button class="cal-arrow" onclick="calMove(-1)">‹</button>
+      <div class="cal-month" id="cal-title"></div>
+      <button class="cal-arrow" onclick="calMove(1)">›</button>
+    </div>
+    <div class="cal-dow"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-foot">
+      <button onclick="closeCal()">キャンセル</button>
+      <button class="cal-ok" onclick="confirmCal()">この日を選択</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let data = JSON.parse(localStorage.getItem('dorakuru_visit_v1') || '{"companies":[]}');
+let editId=null, visitId=null, cCount=0;
+function save(){ localStorage.setItem('dorakuru_visit_v1', JSON.stringify(data)); }
+
+// ── 日付ユーティリティ ──
+function fmtDate(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtDisp(ds){ if(!ds) return ''; const p=ds.split('-'); return p[0]+'年'+parseInt(p[1])+'月'+parseInt(p[2])+'日'; }
+const MONTHS_JP=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+// ── 日付入力カレンダー ──
+let calTarget=null, calY=0, calM=0, calSel=null;
+function openCal(id){
+  calTarget=id;
+  const v=document.getElementById(id).value;
+  const b=v?new Date(v):new Date();
+  calY=b.getFullYear(); calM=b.getMonth(); calSel=v||null;
+  renderPickerCal(); document.getElementById('cal-overlay').classList.add('open');
+}
+function closeCal(){ document.getElementById('cal-overlay').classList.remove('open'); }
+function confirmCal(){ if(calSel) document.getElementById(calTarget).value=calSel; closeCal(); }
+function calMove(d){ calM+=d; if(calM<0){calM=11;calY--;} if(calM>11){calM=0;calY++;} renderPickerCal(); }
+function renderPickerCal(){
+  document.getElementById('cal-title').textContent=calY+'年 '+MONTHS_JP[calM];
+  const todayStr=fmtDate(new Date());
+  const first=new Date(calY,calM,1), last=new Date(calY,calM+1,0);
+  let html='';
+  for(let i=0;i<first.getDay();i++){
+    const d=new Date(calY,calM,1-first.getDay()+i);
+    html+=`<div class="cal-day other-month">${d.getDate()}</div>`;
+  }
+  for(let d=1;d<=last.getDate();d++){
+    const dt=new Date(calY,calM,d), ds=fmtDate(dt), dow=dt.getDay();
+    let cls='cal-day';
+    if(dow===0) cls+=' is-sun'; if(dow===6) cls+=' is-sat';
+    if(ds===todayStr) cls+=' is-today';
+    if(ds===calSel) cls+=' is-selected';
+    html+=`<div class="${cls}" onclick="calPick('${ds}')">${d}</div>`;
+  }
+  const rem=(7-(first.getDay()+last.getDate())%7)%7;
+  for(let i=1;i<=rem;i++) html+=`<div class="cal-day other-month">${i}</div>`;
+  document.getElementById('cal-grid').innerHTML=html;
+}
+function calPick(ds){ calSel=ds; renderPickerCal(); }
+
+// ── ユーティリティ ──
+function initials(n){ return (n||'?').replace(/株式会社|有限会社|合同会社/g,'').trim().slice(0,2)||'?'; }
+function daysDiff(s){
+  if(!s) return null;
+  const d=new Date(s); d.setHours(0,0,0,0);
+  const n=new Date(); n.setHours(0,0,0,0);
+  return Math.round((d-n)/864e5);
+}
+function lastVisit(c){ if(!c.visits||!c.visits.length) return null; return c.visits.slice().sort((a,b)=>new Date(b.date)-new Date(a.date))[0]; }
+function sinceDays(c){
+  const lv=lastVisit(c); if(!lv) return null;
+  const d=new Date(lv.date); d.setHours(0,0,0,0);
+  const n=new Date(); n.setHours(0,0,0,0);
+  return Math.round((n-d)/864e5);
+}
+function contractAlert(c){
+  if(!c.contracts||!c.contracts.length) return null;
+  const al=c.alertDays||60; let mn=Infinity;
+  c.contracts.forEach(ct=>{ if(ct.end){ const d=daysDiff(ct.end); if(d<mn) mn=d; } });
+  return mn===Infinity?null:{days:mn,al};
+}
+function nextBadge(c){
+  const nd=c.nextVisit?daysDiff(c.nextVisit):null;
+  if(nd===null) return '<span class="status-badge badge-gray">予定未設定</span>';
+  if(nd<0) return `<span class="status-badge badge-danger">訪問 ${Math.abs(nd)}日超過</span>`;
+  if(nd<=7) return `<span class="status-badge badge-warn">訪問 ${nd}日後</span>`;
+  return `<span class="status-badge badge-ok">訪問 ${nd}日後</span>`;
+}
+function elapsedBlock(c){
+  const lv=lastVisit(c), sd=sinceDays(c), interval=c.interval||30;
+  if(!lv) return `<div class="elapsed-block"><div class="elapsed-num" style="color:var(--text3);font-size:20px">未記録</div><div><div class="elapsed-title">前回訪問からの経過</div><div class="elapsed-since">訪問記録がありません</div></div></div>`;
+  const rem=interval-sd;
+  let numCls='elapsed-num', nextCls='next-ok', nextTxt='';
+  if(rem<0){ numCls='elapsed-num danger'; nextCls='next-danger'; nextTxt=`次回訪問が <b>${Math.abs(rem)}日</b> 超過`; }
+  else if(rem<=7){ numCls='elapsed-num warn'; nextCls='next-warn'; nextTxt=`次回まで あと <b>${rem}日</b>`; }
+  else nextTxt=`次回まで あと <b>${rem}日</b>`;
+  return `<div class="elapsed-block">
+    <div>
+      <div class="${numCls}">${sd}</div>
+      <div style="font-size:10px;font-weight:600;color:var(--text3);text-align:center;margin-top:2px">日経過</div>
+    </div>
+    <div class="elapsed-right">
+      <div class="elapsed-title">前回訪問からの経過日数</div>
+      <div class="elapsed-since">前回: ${lv.date}</div>
+      <div class="elapsed-next ${nextCls}">${nextTxt}</div>
+    </div>
+  </div>`;
+}
+
+// ── カレンダービュー ──
+let cvYear=new Date().getFullYear(), cvMonth=new Date().getMonth();
+
+function cvGoToday(){ cvYear=new Date().getFullYear(); cvMonth=new Date().getMonth(); renderCalView(); }
+function cvMove(d){ cvMonth+=d; if(cvMonth<0){cvMonth=11;cvYear--;} if(cvMonth>11){cvMonth=0;cvYear++;} renderCalView(); }
+
+function buildEventMap(){
+  // { 'YYYY-MM-DD': [{type,company,label,sub}] }
+  const map={};
+  const todayStr=fmtDate(new Date());
+  data.companies.forEach(c=>{
+    // 訪問予定
+    if(c.nextVisit){
+      if(!map[c.nextVisit]) map[c.nextVisit]=[];
+      map[c.nextVisit].push({type:'visit',id:c.id,name:c.name,sub:'次回訪問予定'});
+    }
+    // 過去の訪問履歴
+    (c.visits||[]).forEach(v=>{
+      if(v.date<todayStr){
+        if(!map[v.date]) map[v.date]=[];
+        map[v.date].push({type:'past-visit',id:c.id,name:c.name,sub:v.memo||'訪問記録'});
+      }
+    });
+    // 契約終了日
+    const al=c.alertDays||60;
+    (c.contracts||[]).forEach(ct=>{
+      if(!ct.end) return;
+      if(!map[ct.end]) map[ct.end]=[];
+      const d=daysDiff(ct.end);
+      const t=d<0?'contract-danger':'contract-warn';
+      map[ct.end].push({type:t,id:c.id,name:c.name,sub:(ct.label||'契約')+'終了日'});
+    });
+  });
+  return map;
+}
+
+function renderCalView(){
+  document.getElementById('cv-title').textContent=cvYear+'年 '+MONTHS_JP[cvMonth];
+  const todayStr=fmtDate(new Date());
+  const first=new Date(cvYear,cvMonth,1);
+  const last=new Date(cvYear,cvMonth+1,0);
+  const evMap=buildEventMap();
+
+  let gridHtml='';
+  // 前月埋め
+  for(let i=0;i<first.getDay();i++){
+    const d=new Date(cvYear,cvMonth,1-first.getDay()+i);
+    gridHtml+=`<div class="cv-cell other"><span class="cv-date-num">${d.getDate()}</span></div>`;
+  }
+  // 当月
+  for(let d=1;d<=last.getDate();d++){
+    const dt=new Date(cvYear,cvMonth,d), ds=fmtDate(dt), dow=dt.getDay();
+    let cls='cv-cell';
+    if(dow===0) cls+=' is-sun'; if(dow===6) cls+=' is-sat';
+    if(ds===todayStr) cls+=' is-today';
+    const evs=evMap[ds]||[];
+    if(evs.length) cls+=' has-event';
+    const dateNumHtml=ds===todayStr
+      ?`<span class="cv-date-num"><span class="cv-today-mark">${d}</span></span>`
+      :`<span class="cv-date-num">${d}</span>`;
+    const evHtml=evs.slice(0,3).map(e=>`<span class="cv-event ${e.type}">${e.name}</span>`).join('');
+    const moreHtml=evs.length>3?`<span style="font-size:9px;color:var(--text3)">+${evs.length-3}件</span>`:'';
+    const clickAttr=evs.length?`onclick="openDayModal('${ds}')"`:'' ;
+    gridHtml+=`<div class="${cls}" ${clickAttr}>${dateNumHtml}${evHtml}${moreHtml}</div>`;
+  }
+  // 翌月埋め
+  const rem=(7-(first.getDay()+last.getDate())%7)%7;
+  for(let i=1;i<=rem;i++) gridHtml+=`<div class="cv-cell other"><span class="cv-date-num">${i}</span></div>`;
+  document.getElementById('cv-grid').innerHTML=gridHtml;
+
+  // 月サマリ（訪問予定と契約終了のみ）
+  const summaryItems=[];
+  for(let d=1;d<=last.getDate();d++){
+    const dt=new Date(cvYear,cvMonth,d), ds=fmtDate(dt);
+    const evs=(evMap[ds]||[]).filter(e=>e.type==='visit'||e.type==='contract-danger'||e.type==='contract-warn');
+    evs.forEach(e=>summaryItems.push({ds,e}));
+  }
+  summaryItems.sort((a,b)=>a.ds.localeCompare(b.ds));
+  if(!summaryItems.length){
+    document.getElementById('cv-summary').innerHTML=`<div class="cv-summary-title">この月の予定</div><div style="font-size:13px;color:var(--text3);padding:8px 0">この月に登録された訪問予定・契約終了はありません</div>`;
+    return;
+  }
+  const rows=summaryItems.map(({ds,e})=>{
+    const p=ds.split('-');
+    const dateStr=parseInt(p[1])+'/'+ parseInt(p[2]);
+    let badgeHtml='';
+    if(e.type==='visit') badgeHtml=`<span class="cv-summary-badge" style="background:var(--blue-lt);color:var(--blue)">訪問予定</span>`;
+    else if(e.type==='contract-danger') badgeHtml=`<span class="cv-summary-badge" style="background:var(--red-lt);color:var(--red)">契約期限切れ</span>`;
+    else badgeHtml=`<span class="cv-summary-badge" style="background:var(--amber-lt);color:var(--amber)">契約更新まじか</span>`;
+    return `<div class="cv-summary-row" onclick="openDayModal('${ds}')">
+      <div class="cv-summary-date">${dateStr}</div>
+      <div class="cv-summary-name">${e.name}</div>
+      ${badgeHtml}
+    </div>`;
+  }).join('');
+  document.getElementById('cv-summary').innerHTML=`<div class="cv-summary-title">この月の予定・契約一覧</div>${rows}`;
+}
+
+function openDayModal(ds){
+  const p=ds.split('-');
+  document.getElementById('day-modal-title').textContent=parseInt(p[1])+'月'+parseInt(p[2])+'日 の予定';
+  const evMap=buildEventMap();
+  const evs=evMap[ds]||[];
+  if(!evs.length){ document.getElementById('day-modal-content').innerHTML='<div style="color:var(--text3);font-size:13px">この日の予定はありません</div>'; }
+  else {
+    document.getElementById('day-modal-content').innerHTML=evs.map(e=>{
+      let barCls='day-type-bar bar-visit', labelTxt='訪問予定', btnHtml='';
+      if(e.type==='past-visit'){ barCls='day-type-bar'; btnHtml=''; labelTxt='過去の訪問記録'; }
+      else if(e.type==='contract-danger'){ barCls='day-type-bar bar-contract'; labelTxt='契約期限切れ'; }
+      else if(e.type==='contract-warn'){ barCls='day-type-bar bar-contract-warn'; labelTxt='契約更新まじか'; }
+      if(e.type==='visit') btnHtml=`<div style="margin-top:8px"><button class="abtn primary" onclick="closeDayModal();openVisit('${e.id}')">訪問を記録する</button></div>`;
+      return `<div class="day-detail-item">
+        <div class="${barCls}"></div>
+        <div style="flex:1">
+          <div class="day-detail-label">${labelTxt}</div>
+          <div class="day-detail-name">${e.name}</div>
+          <div class="day-detail-sub">${e.sub||''}</div>
+          ${btnHtml}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('day-modal').classList.add('open');
+}
+function closeDayModal(){ document.getElementById('day-modal').classList.remove('open'); }
+
+// ── タブ切替 ──
+function switchTab(tab,el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  ['list','alerts','calendar','schedule'].forEach(t=>{
+    const el=document.getElementById('tab-'+t);
+    if(el) el.style.display='none';
+  });
+  document.getElementById('tab-'+tab).style.display='block';
+  if(tab==='alerts') renderAlerts();
+  else if(tab==='calendar') renderCalView();
+  else if(tab==='schedule') renderSchedule();
+  else renderList(document.getElementById('search').value);
+}
+
+// ── 会社一覧 ──
+function renderList(q){
+  const el=document.getElementById('company-list');
+  const list=data.companies.filter(c=>c.name.includes(q||''));
+  if(!list.length){ el.innerHTML='<div class="empty"><div class="empty-icon">🏢</div>会社が登録されていません<br>右下の ＋ ボタンから追加してください</div>'; return; }
+  el.innerHTML=list.map(c=>{
+    const ca=contractAlert(c);
+    let alertHtml='';
+    if(ca!==null){
+      if(ca.days<0) alertHtml=`<div class="alert-banner danger"><div class="alert-dot"></div>契約期限が ${Math.abs(ca.days)}日前 に切れています</div>`;
+      else if(ca.days<=ca.al) alertHtml=`<div class="alert-banner warn"><div class="alert-dot"></div>契約更新まで あと ${ca.days}日</div>`;
+    }
+    const contractsHtml=c.contracts&&c.contracts.length?`<div class="contract-list">${c.contracts.map(ct=>`<div class="contract-item"><span class="contract-name">${ct.label||'契約'}</span><span class="contract-end">${ct.end?'終了: '+ct.end:'終了日未設定'}</span></div>`).join('')}</div>`:'';
+    const memoHtml=c.memo?`<div class="memo-box">${c.memo}</div>`:'';
+    return `<div class="card"><div class="card-main">
+      ${alertHtml}
+      <div class="company-row">
+        <div class="company-initial">${initials(c.name)}</div>
+        <div class="company-info"><div class="company-name">${c.name}</div><div class="company-contact">${c.contact||'担当者未登録'}</div></div>
+        ${nextBadge(c)}
+      </div>
+      ${elapsedBlock(c)}
+      <div class="data-grid">
+        <div class="data-cell"><div class="data-label">次回訪問予定日</div><div class="data-val">${c.nextVisit||'—'}</div></div>
+        <div class="data-cell"><div class="data-label">訪問間隔</div><div class="data-val">${c.interval||30}日ごと</div></div>
+        <div class="data-cell"><div class="data-label">訪問回数</div><div class="data-val">${(c.visits||[]).length}回</div></div>
+        <div class="data-cell"><div class="data-label">更新アラート</div><div class="data-val">${c.alertDays||60}日前</div></div>
+      </div>
+      ${contractsHtml}${memoHtml}
+      <div class="action-row">
+        <button class="abtn primary" onclick="openVisit('${c.id}')">訪問を記録</button>
+        <button class="abtn" onclick="openHist('${c.id}')">履歴を見る</button>
+        <button class="abtn" onclick="openEdit('${c.id}')">編集</button>
+      </div>
+    </div></div>`;
+  }).join('');
+}
+
+function renderAlerts(){
+  const el=document.getElementById('alert-list');
+  const items=data.companies.filter(c=>{ const ca=contractAlert(c); return ca&&ca.days<=ca.al; });
+  if(!items.length){ el.innerHTML='<div class="empty"><div class="empty-icon">✅</div>現在アラートはありません</div>'; return; }
+  el.innerHTML=items.map(c=>{
+    const ca=contractAlert(c);
+    return `<div class="card"><div class="card-main">
+      <div class="alert-banner ${ca.days<0?'danger':'warn'}"><div class="alert-dot"></div>${ca.days<0?`契約期限が ${Math.abs(ca.days)}日前 に切れています`:`契約更新まで あと ${ca.days}日`}</div>
+      <div class="company-row"><div class="company-initial">${initials(c.name)}</div><div class="company-info"><div class="company-name">${c.name}</div><div class="company-contact">${c.contact||''}</div></div></div>
+      <div class="action-row"><button class="abtn primary" onclick="openEdit('${c.id}')">契約情報を更新する</button></div>
+    </div></div>`;
+  }).join('');
+}
+
+function renderSchedule(){
+  const el=document.getElementById('schedule-list');
+  const items=data.companies.filter(c=>c.nextVisit).sort((a,b)=>new Date(a.nextVisit)-new Date(b.nextVisit));
+  if(!items.length){ el.innerHTML='<div class="empty"><div class="empty-icon">📅</div>次回訪問予定日が登録されている<br>会社はありません</div>'; return; }
+  el.innerHTML=items.map(c=>`<div class="card"><div class="card-main">
+    <div class="company-row"><div class="company-initial">${initials(c.name)}</div><div class="company-info"><div class="company-name">${c.name}</div><div class="company-contact">予定日: ${c.nextVisit}</div></div>${nextBadge(c)}</div>
+    ${elapsedBlock(c)}
+    <div class="action-row"><button class="abtn primary" onclick="openVisit('${c.id}')">訪問を記録する</button></div>
+  </div></div>`).join('');
+}
+
+// ── 契約行 ──
+function addCRow(label,end){
+  cCount++;
+  const id=`cr-${cCount}`;
+  const div=document.createElement('div'); div.className='crow'; div.id=id;
+  div.innerHTML=`<input placeholder="契約名（例: 陸送委託）" value="${label||''}">
+    <input id="crd-${cCount}" placeholder="終了日" value="${end||''}" readonly onclick="openCal('crd-${cCount}')">
+    <button class="delbtn" onclick="document.getElementById('${id}').remove()">×</button>`;
+  document.getElementById('contracts-form').appendChild(div);
+}
+
+// ── 会社 ──
+function openAdd(){
+  editId=null; document.getElementById('modal-title').textContent='会社を追加';
+  ['f-name','f-contact','f-memo','f-next'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-interval').value='30'; document.getElementById('f-alert-days').value='60';
+  document.getElementById('contracts-form').innerHTML=''; cCount=0;
+  document.getElementById('add-modal').classList.add('open');
+}
+function openEdit(id){
+  const c=data.companies.find(x=>x.id===id); if(!c) return;
+  editId=id; document.getElementById('modal-title').textContent='会社情報を編集';
+  document.getElementById('f-name').value=c.name||'';
+  document.getElementById('f-contact').value=c.contact||'';
+  document.getElementById('f-memo').value=c.memo||'';
+  document.getElementById('f-interval').value=c.interval||30;
+  document.getElementById('f-next').value=c.nextVisit||'';
+  document.getElementById('f-alert-days').value=c.alertDays||60;
+  document.getElementById('contracts-form').innerHTML=''; cCount=0;
+  (c.contracts||[]).forEach(ct=>addCRow(ct.label,ct.end));
+  document.getElementById('add-modal').classList.add('open');
+}
+function closeAdd(){ document.getElementById('add-modal').classList.remove('open'); }
+function saveCompany(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){ alert('会社名を入力してください'); return; }
+  const rows=document.querySelectorAll('#contracts-form .crow');
+  const contracts=Array.from(rows).map(r=>{ const inp=r.querySelectorAll('input'); return{label:inp[0].value,end:inp[1].value}; });
+  const obj={name,contact:document.getElementById('f-contact').value,memo:document.getElementById('f-memo').value,
+    interval:parseInt(document.getElementById('f-interval').value)||30,
+    nextVisit:document.getElementById('f-next').value,
+    alertDays:parseInt(document.getElementById('f-alert-days').value)||60,contracts};
+  if(editId){ const c=data.companies.find(x=>x.id===editId); if(c) Object.assign(c,obj); }
+  else data.companies.push({id:'c'+Date.now(),visits:[],...obj});
+  save(); closeAdd(); renderList(document.getElementById('search').value);
+}
+
+// ── 訪問 ──
+function openVisit(id){
+  visitId=id; document.getElementById('v-date').value=fmtDate(new Date()); document.getElementById('v-memo').value='';
+  const c=data.companies.find(x=>x.id===id);
+  if(c&&c.interval){ const nd=new Date(); nd.setDate(nd.getDate()+(c.interval||30)); document.getElementById('v-next').value=fmtDate(nd); }
+  else document.getElementById('v-next').value='';
+  document.getElementById('visit-modal').classList.add('open');
+}
+function closeVisit(){ document.getElementById('visit-modal').classList.remove('open'); }
+function saveVisit(){
+  const c=data.companies.find(x=>x.id===visitId); if(!c) return;
+  const d=document.getElementById('v-date').value;
+  if(!d){ alert('訪問日を入力してください'); return; }
+  if(!c.visits) c.visits=[];
+  c.visits.push({date:d,memo:document.getElementById('v-memo').value});
+  const nv=document.getElementById('v-next').value; if(nv) c.nextVisit=nv;
+  save(); closeVisit(); renderList(document.getElementById('search').value);
+}
+
+// ── 履歴 ──
+function openHist(id){
+  const c=data.companies.find(x=>x.id===id); if(!c) return;
+  document.getElementById('hist-title').textContent=c.name+' の訪問履歴';
+  const visits=(c.visits||[]).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!visits.length){ document.getElementById('hist-content').innerHTML='<div style="color:var(--text3);font-size:13px;padding:12px 0">訪問履歴はまだありません</div>'; }
+  else {
+    const todayStr=fmtDate(new Date());
+    document.getElementById('hist-content').innerHTML=visits.map((v,i)=>{
+      const prev=visits[i+1];
+      const interval=prev?Math.round((new Date(v.date)-new Date(prev.date))/864e5):null;
+      const fromToday=Math.round((new Date(todayStr)-new Date(v.date))/864e5);
+      return `<div class="hist-row">
+        <div class="hist-left"><div class="hist-circle"></div>${i<visits.length-1?'<div class="hist-line"></div>':''}</div>
+        <div class="hist-body">
+          <div class="hist-date-row">
+            <span class="hist-date">${v.date}</span>
+            <span class="hist-chip chip-gray">今日から ${fromToday}日前</span>
+            ${interval!==null?`<span class="hist-chip chip-blue">前回から ${interval}日後</span>`:`<span class="hist-chip chip-gray">初回訪問</span>`}
+          </div>
+          <div class="hist-memo">${v.memo||'メモなし'}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('hist-modal').classList.add('open');
+}
+function closeHist(){ document.getElementById('hist-modal').classList.remove('open'); }
+
+// ── 入出力 ──
+function exportData(){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`visit_${fmtDate(new Date())}.json`; a.click();
+}
+function importData(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{ try{ data=JSON.parse(ev.target.result); save(); renderList(); alert('読み込みました'); } catch{ alert('読み込みに失敗しました'); } };
+  r.readAsText(f);
+}
+
+renderList();
+</script>
+</body>
+</html>
