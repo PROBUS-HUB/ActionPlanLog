@@ -220,8 +220,7 @@ textarea.form-input{height:72px;resize:vertical}
 .chip-gray{background:var(--bg2);color:var(--text3)}
 .hist-memo{font-size:12px;color:var(--text2);line-height:1.5}
 /* ── 対応方法・内容種別 セレクター ── */
-.method-group{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
-.method-btn{padding:10px 4px;border:1.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;line-height:1.4}
+.method-group{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}.method-btn{padding:10px 4px;border:1.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;line-height:1.4}
 .method-btn.active{border-color:var(--blue);background:var(--blue-lt);color:var(--blue)}
 .method-btn .method-icon{display:block;font-size:18px;margin-bottom:3px}
 .type-group{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px}
@@ -338,9 +337,6 @@ textarea.form-input{height:72px;resize:vertical}
       <button type="button" class="method-btn" data-val="訪問" onclick="selectMethod(this,'f-method-group','f-type-area')">
         <span class="method-icon">🚗</span>訪問
       </button>
-      <button type="button" class="method-btn" data-val="面接" onclick="selectMethod(this,'f-method-group','f-type-area')">
-        <span class="method-icon">🤝</span>面接
-      </button>
     </div>
     <div class="method-sub" id="f-type-area" style="display:none">
       <label class="form-label">対応内容の種別</label>
@@ -348,8 +344,8 @@ textarea.form-input{height:72px;resize:vertical}
         <button type="button" class="type-btn" data-val="面談" onclick="selectType(this,'f-type-group')">面談</button>
         <button type="button" class="type-btn" data-val="商談" onclick="selectType(this,'f-type-group')">商談</button>
         <button type="button" class="type-btn" data-val="打ち合わせ" onclick="selectType(this,'f-type-group')">打ち合わせ</button>
-        <button type="button" class="type-btn" data-val="報告" onclick="selectType(this,'f-type-group')">報告</button>
-        <button type="button" class="type-btn" data-val="クレーム対応" onclick="selectType(this,'f-type-group')">クレーム対応</button>
+        <button type="button" class="type-btn" data-val="クレーム" onclick="selectType(this,'f-type-group')">クレーム</button>
+        <button type="button" class="type-btn" data-val="面接" onclick="selectType(this,'f-type-group')">面接</button>
         <button type="button" class="type-btn" data-val="その他" onclick="selectType(this,'f-type-group')">その他</button>
       </div>
     </div>
@@ -395,9 +391,6 @@ textarea.form-input{height:72px;resize:vertical}
       <button type="button" class="method-btn" data-val="訪問" onclick="selectMethod(this,'v-method-group','v-type-area')">
         <span class="method-icon">🚗</span>訪問
       </button>
-      <button type="button" class="method-btn" data-val="面接" onclick="selectMethod(this,'v-method-group','v-type-area')">
-        <span class="method-icon">🤝</span>面接
-      </button>
     </div>
     <div class="method-sub" id="v-type-area" style="display:none">
       <label class="form-label">対応内容の種別</label>
@@ -405,8 +398,8 @@ textarea.form-input{height:72px;resize:vertical}
         <button type="button" class="type-btn" data-val="面談" onclick="selectType(this,'v-type-group')">面談</button>
         <button type="button" class="type-btn" data-val="商談" onclick="selectType(this,'v-type-group')">商談</button>
         <button type="button" class="type-btn" data-val="打ち合わせ" onclick="selectType(this,'v-type-group')">打ち合わせ</button>
-        <button type="button" class="type-btn" data-val="報告" onclick="selectType(this,'v-type-group')">報告</button>
-        <button type="button" class="type-btn" data-val="クレーム対応" onclick="selectType(this,'v-type-group')">クレーム対応</button>
+        <button type="button" class="type-btn" data-val="クレーム" onclick="selectType(this,'v-type-group')">クレーム</button>
+        <button type="button" class="type-btn" data-val="面接" onclick="selectType(this,'v-type-group')">面接</button>
         <button type="button" class="type-btn" data-val="その他" onclick="selectType(this,'v-type-group')">その他</button>
       </div>
     </div>
