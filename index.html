@@ -219,6 +219,19 @@ textarea.form-input{height:72px;resize:vertical}
 .chip-blue{background:var(--blue-lt);color:var(--blue)}
 .chip-gray{background:var(--bg2);color:var(--text3)}
 .hist-memo{font-size:12px;color:var(--text2);line-height:1.5}
+/* ── 対応方法・内容種別 セレクター ── */
+.method-group{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.method-btn{padding:10px 4px;border:1.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;line-height:1.4}
+.method-btn.active{border-color:var(--blue);background:var(--blue-lt);color:var(--blue)}
+.method-btn .method-icon{display:block;font-size:18px;margin-bottom:3px}
+.type-group{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px}
+.type-btn{padding:9px 6px;border:1.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center}
+.type-btn.active{border-color:var(--blue);background:var(--blue-lt);color:var(--blue)}
+.type-group-wide{grid-template-columns:repeat(3,1fr)}
+.method-sub{margin-bottom:12px;animation:fadeIn .15s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.hist-method-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;background:var(--blue-lt);color:var(--blue);margin-right:4px;margin-bottom:4px}
+.hist-type-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;background:var(--bg2);color:var(--text2);margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -234,7 +247,7 @@ textarea.form-input{height:72px;resize:vertical}
 
   <div class="content">
     <!-- 会社一覧 -->
-    <div id="tab-list">
+    <div id="tab-list" style="display:none">
       <div class="search-wrap">
         <div class="search-inner">
           <span>🔍</span>
@@ -249,7 +262,7 @@ textarea.form-input{height:72px;resize:vertical}
       <div id="alert-list"></div>
     </div>
     <!-- カレンダービュー -->
-    <div id="tab-calendar" style="display:none">
+    <div id="tab-calendar">
       <div class="cv-header">
         <button class="cv-nav" onclick="cvMove(-1)">‹</button>
         <div class="cv-month-title" id="cv-title"></div>
@@ -278,17 +291,17 @@ textarea.form-input{height:72px;resize:vertical}
   </div>
 
   <div class="bottom-nav">
-    <button class="nav-item active" onclick="switchTab('list',this)">
-      <span>会社一覧</span><div class="nav-pip"></div>
-    </button>
-    <button class="nav-item" onclick="switchTab('calendar',this)">
+    <button class="nav-item active" onclick="switchTab('calendar',this)">
       <span>カレンダー</span><div class="nav-pip"></div>
+    </button>
+    <button class="nav-item" onclick="switchTab('schedule',this)">
+      <span>訪問予定</span><div class="nav-pip"></div>
     </button>
     <button class="nav-item" onclick="switchTab('alerts',this)">
       <span>アラート</span><div class="nav-pip"></div>
     </button>
-    <button class="nav-item" onclick="switchTab('schedule',this)">
-      <span>訪問予定</span><div class="nav-pip"></div>
+    <button class="nav-item" onclick="switchTab('list',this)">
+      <span>会社一覧</span><div class="nav-pip"></div>
     </button>
   </div>
 </div>
@@ -314,6 +327,32 @@ textarea.form-input{height:72px;resize:vertical}
     <input class="form-input" id="f-name" placeholder="株式会社〇〇">
     <label class="form-label">担当者名</label>
     <input class="form-input" id="f-contact" placeholder="山田 太郎">
+    <label class="form-label">主な対応方法</label>
+    <div class="method-group" id="f-method-group">
+      <button type="button" class="method-btn" data-val="電話" onclick="selectMethod(this,'f-method-group','f-type-area')">
+        <span class="method-icon">📞</span>電話
+      </button>
+      <button type="button" class="method-btn" data-val="Zoom" onclick="selectMethod(this,'f-method-group','f-type-area')">
+        <span class="method-icon">💻</span>Zoom
+      </button>
+      <button type="button" class="method-btn" data-val="訪問" onclick="selectMethod(this,'f-method-group','f-type-area')">
+        <span class="method-icon">🚗</span>訪問
+      </button>
+      <button type="button" class="method-btn" data-val="面接" onclick="selectMethod(this,'f-method-group','f-type-area')">
+        <span class="method-icon">🤝</span>面接
+      </button>
+    </div>
+    <div class="method-sub" id="f-type-area" style="display:none">
+      <label class="form-label">対応内容の種別</label>
+      <div class="type-group type-group-wide" id="f-type-group">
+        <button type="button" class="type-btn" data-val="面談" onclick="selectType(this,'f-type-group')">面談</button>
+        <button type="button" class="type-btn" data-val="商談" onclick="selectType(this,'f-type-group')">商談</button>
+        <button type="button" class="type-btn" data-val="打ち合わせ" onclick="selectType(this,'f-type-group')">打ち合わせ</button>
+        <button type="button" class="type-btn" data-val="報告" onclick="selectType(this,'f-type-group')">報告</button>
+        <button type="button" class="type-btn" data-val="クレーム対応" onclick="selectType(this,'f-type-group')">クレーム対応</button>
+        <button type="button" class="type-btn" data-val="その他" onclick="selectType(this,'f-type-group')">その他</button>
+      </div>
+    </div>
     <label class="form-label">メモ</label>
     <textarea class="form-input" id="f-memo" placeholder="特記事項、商談内容など"></textarea>
     <label class="form-label">訪問間隔（日）</label>
@@ -344,6 +383,32 @@ textarea.form-input{height:72px;resize:vertical}
     <div class="date-wrap">
       <input id="v-date" placeholder="YYYY-MM-DD" readonly>
       <button class="calbtn" onclick="openCal('v-date')">カレンダー</button>
+    </div>
+    <label class="form-label">対応方法</label>
+    <div class="method-group" id="v-method-group">
+      <button type="button" class="method-btn" data-val="電話" onclick="selectMethod(this,'v-method-group','v-type-area')">
+        <span class="method-icon">📞</span>電話
+      </button>
+      <button type="button" class="method-btn" data-val="Zoom" onclick="selectMethod(this,'v-method-group','v-type-area')">
+        <span class="method-icon">💻</span>Zoom
+      </button>
+      <button type="button" class="method-btn" data-val="訪問" onclick="selectMethod(this,'v-method-group','v-type-area')">
+        <span class="method-icon">🚗</span>訪問
+      </button>
+      <button type="button" class="method-btn" data-val="面接" onclick="selectMethod(this,'v-method-group','v-type-area')">
+        <span class="method-icon">🤝</span>面接
+      </button>
+    </div>
+    <div class="method-sub" id="v-type-area" style="display:none">
+      <label class="form-label">対応内容の種別</label>
+      <div class="type-group type-group-wide" id="v-type-group">
+        <button type="button" class="type-btn" data-val="面談" onclick="selectType(this,'v-type-group')">面談</button>
+        <button type="button" class="type-btn" data-val="商談" onclick="selectType(this,'v-type-group')">商談</button>
+        <button type="button" class="type-btn" data-val="打ち合わせ" onclick="selectType(this,'v-type-group')">打ち合わせ</button>
+        <button type="button" class="type-btn" data-val="報告" onclick="selectType(this,'v-type-group')">報告</button>
+        <button type="button" class="type-btn" data-val="クレーム対応" onclick="selectType(this,'v-type-group')">クレーム対応</button>
+        <button type="button" class="type-btn" data-val="その他" onclick="selectType(this,'v-type-group')">その他</button>
+      </div>
     </div>
     <label class="form-label">訪問内容・メモ</label>
     <textarea class="form-input" id="v-memo" placeholder="商談内容、次回への申し送りなど"></textarea>
@@ -477,6 +542,7 @@ function elapsedBlock(c){
     <div class="elapsed-right">
       <div class="elapsed-title">前回訪問からの経過日数</div>
       <div class="elapsed-since">前回: ${lv.date}</div>
+      ${lv.method?`<div style="margin-top:4px">${methodTagHtml(lv.method,lv.type)}</div>`:''}
       <div class="elapsed-next ${nextCls}">${nextTxt}</div>
     </div>
   </div>`;
@@ -699,6 +765,50 @@ function renderSchedule(){
   </div></div>`).join('');
 }
 
+// ── 対応方法・種別セレクター ──
+function selectMethod(btn, groupId, typeAreaId){
+  document.querySelectorAll('#'+groupId+' .method-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(typeAreaId).style.display='block';
+  // 種別リセット
+  const tgId = typeAreaId.replace('-area','-group');
+  document.querySelectorAll('#'+tgId+' .type-btn').forEach(b=>b.classList.remove('active'));
+}
+function selectType(btn, groupId){
+  document.querySelectorAll('#'+groupId+' .type-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function getSelected(groupId, selector){
+  const el=document.querySelector('#'+groupId+' '+selector+'.active');
+  return el?el.dataset.val:'';
+}
+function resetMethodGroup(groupId, typeAreaId){
+  document.querySelectorAll('#'+groupId+' .method-btn').forEach(b=>b.classList.remove('active'));
+  const tgId=typeAreaId.replace('-area','-group');
+  document.querySelectorAll('#'+tgId+' .type-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(typeAreaId).style.display='none';
+}
+function setMethodGroup(groupId, typeAreaId, method, type){
+  resetMethodGroup(groupId, typeAreaId);
+  if(!method) return;
+  const mb=document.querySelector(`#${groupId} .method-btn[data-val="${method}"]`);
+  if(mb){ mb.classList.add('active'); document.getElementById(typeAreaId).style.display='block'; }
+  if(type){
+    const tgId=typeAreaId.replace('-area','-group');
+    const tb=document.querySelector(`#${tgId} .type-btn[data-val="${type}"]`);
+    if(tb) tb.classList.add('active');
+  }
+}
+// 対応タグHTML（カード・履歴用）
+function methodTagHtml(method, type){
+  if(!method) return '';
+  const icons={'電話':'📞','Zoom':'💻','訪問':'🚗','面接':'🤝'};
+  const icon=icons[method]||'';
+  let html=`<span class="hist-method-tag">${icon} ${method}</span>`;
+  if(type) html+=`<span class="hist-method-tag" style="background:var(--green-lt);color:var(--green)">${type}</span>`;
+  return `<div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:4px">${html}</div>`;
+}
+
 // ── UI表示制御（シート開閉時にヘッダー・ナビを隠す） ──
 function hideChrome(){
   document.querySelector('.header').style.display='none';
@@ -728,6 +838,7 @@ function openAdd(){
   ['f-name','f-contact','f-memo','f-next'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-interval').value='30'; document.getElementById('f-alert-days').value='60';
   document.getElementById('contracts-form').innerHTML=''; cCount=0;
+  resetMethodGroup('f-method-group','f-type-area');
   document.getElementById('add-modal').classList.add('open');
   hideChrome();
 }
@@ -742,6 +853,7 @@ function openEdit(id){
   document.getElementById('f-alert-days').value=c.alertDays||60;
   document.getElementById('contracts-form').innerHTML=''; cCount=0;
   (c.contracts||[]).forEach(ct=>addCRow(ct.label,ct.end));
+  setMethodGroup('f-method-group','f-type-area',c.defaultMethod||'',c.defaultType||'');
   document.getElementById('add-modal').classList.add('open');
   hideChrome();
 }
@@ -754,7 +866,10 @@ function saveCompany(){
   const obj={name,contact:document.getElementById('f-contact').value,memo:document.getElementById('f-memo').value,
     interval:parseInt(document.getElementById('f-interval').value)||30,
     nextVisit:document.getElementById('f-next').value,
-    alertDays:parseInt(document.getElementById('f-alert-days').value)||60,contracts};
+    alertDays:parseInt(document.getElementById('f-alert-days').value)||60,
+    defaultMethod:getSelected('f-method-group','.method-btn'),
+    defaultType:getSelected('f-type-group','.type-btn'),
+    contracts};
   if(editId){ const c=data.companies.find(x=>x.id===editId); if(c) Object.assign(c,obj); }
   else data.companies.push({id:'c'+Date.now(),visits:[],...obj});
   save(); closeAdd(); renderList(document.getElementById('search').value);
@@ -766,6 +881,10 @@ function openVisit(id){
   const c=data.companies.find(x=>x.id===id);
   if(c&&c.interval){ const nd=new Date(); nd.setDate(nd.getDate()+(c.interval||30)); document.getElementById('v-next').value=fmtDate(nd); }
   else document.getElementById('v-next').value='';
+  // 会社のデフォルト対応方法を初期値としてセット
+  const defM=c&&c.defaultMethod?c.defaultMethod:'';
+  const defT=c&&c.defaultType?c.defaultType:'';
+  setMethodGroup('v-method-group','v-type-area',defM,defT);
   document.getElementById('visit-modal').classList.add('open');
   hideChrome();
 }
@@ -775,7 +894,12 @@ function saveVisit(){
   const d=document.getElementById('v-date').value;
   if(!d){ alert('訪問日を入力してください'); return; }
   if(!c.visits) c.visits=[];
-  c.visits.push({date:d,memo:document.getElementById('v-memo').value});
+  c.visits.push({
+    date:d,
+    memo:document.getElementById('v-memo').value,
+    method:getSelected('v-method-group','.method-btn'),
+    type:getSelected('v-type-group','.type-btn')
+  });
   const nv=document.getElementById('v-next').value; if(nv) c.nextVisit=nv;
   save(); closeVisit(); renderList(document.getElementById('search').value);
 }
@@ -800,6 +924,7 @@ function openHist(id){
             <span class="hist-chip chip-gray">今日から ${fromToday}日前</span>
             ${interval!==null?`<span class="hist-chip chip-blue">前回から ${interval}日後</span>`:`<span class="hist-chip chip-gray">初回訪問</span>`}
           </div>
+          ${v.method?methodTagHtml(v.method,v.type):''}
           <div class="hist-memo">${v.memo||'メモなし'}</div>
         </div>
       </div>`;
@@ -822,6 +947,9 @@ function importData(e){
   r.readAsText(f);
 }
 
+// 初期表示はカレンダー
+renderCalView();
+// 会社一覧データも事前読み込み
 renderList();
 </script>
 </body>
