@@ -730,6 +730,8 @@ function renderList(q){
         <button class="abtn" onclick="openEdit('${c.id}')">編集</button>
         <button class="abtn" style="color:#991B1B;border-color:#FCA5A5;flex:0 0 auto;padding:9px 12px" onclick="deleteCompany('${c.id}')">削除</button>
       </div>
+      ${c.nextVisit?`<div style="margin-top:8px"><button onclick="clearNextVisit('${c.id}')" style="width:100%;padding:8px 0;border:1px solid #FCD34D;border-radius:6px;background:var(--amber-lt);color:var(--amber);font-size:12px;font-weight:600;cursor:pointer">次回訪問予定日（${c.nextVisit}）を削除</button></div>`:''}
+
     </div></div>`;
   }).join('');
 }
@@ -755,7 +757,10 @@ function renderSchedule(){
   el.innerHTML=items.map(c=>`<div class="card"><div class="card-main">
     <div class="company-row"><div class="company-initial">${initials(c.name)}</div><div class="company-info"><div class="company-name">${c.name}</div><div class="company-contact">予定日: ${c.nextVisit}</div></div>${nextBadge(c)}</div>
     ${elapsedBlock(c)}
-    <div class="action-row"><button class="abtn primary" onclick="openVisit('${c.id}')">訪問を記録する</button></div>
+    <div class="action-row">
+      <button class="abtn primary" onclick="openVisit('${c.id}')">訪問を記録する</button>
+      <button class="abtn" style="color:#991B1B;border-color:#FCA5A5;flex:0 0 auto;padding:9px 12px" onclick="clearNextVisit('${c.id}')">予定を削除</button>
+    </div>
   </div></div>`).join('');
 }
 
@@ -946,6 +951,14 @@ function deleteVisit(date, memoPreview){
   save();
   renderHistContent();
   renderList(document.getElementById('search')?document.getElementById('search').value:'');
+}
+function clearNextVisit(id){
+  const c=data.companies.find(x=>x.id===id); if(!c||!c.nextVisit) return;
+  if(!confirm(`「${c.name}」の次回訪問予定日（${c.nextVisit}）を削除しますか？`)) return;
+  c.nextVisit='';
+  save();
+  renderList(document.getElementById('search')?document.getElementById('search').value:'');
+  renderSchedule();
 }
 function deleteCompany(id){
   const c=data.companies.find(x=>x.id===id); if(!c) return;
