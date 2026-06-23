@@ -728,6 +728,7 @@ function renderList(q){
         <button class="abtn primary" onclick="openVisit('${c.id}')">訪問を記録</button>
         <button class="abtn" onclick="openHist('${c.id}')">履歴を見る</button>
         <button class="abtn" onclick="openEdit('${c.id}')">編集</button>
+        <button class="abtn" style="color:#991B1B;border-color:#FCA5A5;flex:0 0 auto;padding:9px 12px" onclick="deleteCompany('${c.id}')">削除</button>
       </div>
     </div></div>`;
   }).join('');
@@ -898,35 +899,61 @@ function saveVisit(){
 }
 
 // ── 履歴 ──
+let histCompanyId=null;
 function openHist(id){
-  const c=data.companies.find(x=>x.id===id); if(!c) return;
-  document.getElementById('hist-title').textContent=c.name+' の訪問履歴';
-  const visits=(c.visits||[]).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
-  if(!visits.length){ document.getElementById('hist-content').innerHTML='<div style="color:var(--text3);font-size:13px;padding:12px 0">訪問履歴はまだありません</div>'; }
-  else {
-    const todayStr=fmtDate(new Date());
-    document.getElementById('hist-content').innerHTML=visits.map((v,i)=>{
-      const prev=visits[i+1];
-      const interval=prev?Math.round((new Date(v.date)-new Date(prev.date))/864e5):null;
-      const fromToday=Math.round((new Date(todayStr)-new Date(v.date))/864e5);
-      return `<div class="hist-row">
-        <div class="hist-left"><div class="hist-circle"></div>${i<visits.length-1?'<div class="hist-line"></div>':''}</div>
-        <div class="hist-body">
-          <div class="hist-date-row">
-            <span class="hist-date">${v.date}</span>
-            <span class="hist-chip chip-gray">今日から ${fromToday}日前</span>
-            ${interval!==null?`<span class="hist-chip chip-blue">前回から ${interval}日後</span>`:`<span class="hist-chip chip-gray">初回訪問</span>`}
-          </div>
-          ${v.method?methodTagHtml(v.method,v.type):''}
-          <div class="hist-memo">${v.memo||'メモなし'}</div>
-        </div>
-      </div>`;
-    }).join('');
-  }
+  histCompanyId=id;
+  renderHistContent();
   document.getElementById('hist-modal').classList.add('open');
   hideChrome();
 }
-function closeHist(){ document.getElementById('hist-modal').classList.remove('open'); showChrome(); }
+function renderHistContent(){
+  const c=data.companies.find(x=>x.id===histCompanyId); if(!c) return;
+  document.getElementById('hist-title').textContent=c.name+' の訪問履歴';
+  const visits=(c.visits||[]).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!visits.length){
+    document.getElementById('hist-content').innerHTML='<div style="color:var(--text3);font-size:13px;padding:12px 0">訪問履歴はまだありません</div>';
+    return;
+  }
+  const todayStr=fmtDate(new Date());
+  document.getElementById('hist-content').innerHTML=visits.map((v,i)=>{
+    const prev=visits[i+1];
+    const interval=prev?Math.round((new Date(v.date)-new Date(prev.date))/864e5):null;
+    const fromToday=Math.round((new Date(todayStr)-new Date(v.date))/864e5);
+    return `<div class="hist-row">
+      <div class="hist-left"><div class="hist-circle"></div>${i<visits.length-1?'<div class="hist-line"></div>':''}</div>
+      <div class="hist-body">
+        <div class="hist-date-row">
+          <span class="hist-date">${v.date}</span>
+          <span class="hist-chip chip-gray">今日から ${fromToday}日前</span>
+          ${interval!==null?`<span class="hist-chip chip-blue">前回から ${interval}日後</span>`:`<span class="hist-chip chip-gray">初回訪問</span>`}
+        </div>
+        ${v.method?methodTagHtml(v.method,v.type):''}
+        <div class="hist-memo">${v.memo||'メモなし'}</div>
+        <div style="margin-top:8px">
+          <button onclick="deleteVisit('${v.date}','${(v.memo||'').slice(0,10)}')" style="padding:5px 12px;border:1px solid #FCA5A5;border-radius:6px;background:none;color:#991B1B;font-size:11px;font-weight:600;cursor:pointer">この記録を削除</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function closeHist(){ document.getElementById('hist-modal').classList.remove('open'); showChrome(); histCompanyId=null; }
+function deleteVisit(date, memoPreview){
+  if(!histCompanyId) return;
+  const c=data.companies.find(x=>x.id===histCompanyId); if(!c) return;
+  const label=memoPreview?`${date}（${memoPreview}…）`:date;
+  if(!confirm(`${label} の訪問記録を削除しますか？\n\nこの操作は元に戻せません。`)) return;
+  c.visits=c.visits.filter(v=>!(v.date===date));
+  save();
+  renderHistContent();
+  renderList(document.getElementById('search')?document.getElementById('search').value:'');
+}
+function deleteCompany(id){
+  const c=data.companies.find(x=>x.id===id); if(!c) return;
+  if(!confirm(`「${c.name}」を削除しますか？\n\n訪問履歴・契約情報を含むすべてのデータが消えます。この操作は元に戻せません。`)) return;
+  data.companies=data.companies.filter(x=>x.id!==id);
+  save();
+  renderList(document.getElementById('search')?document.getElementById('search').value:'');
+}
 
 // ── 入出力 ──
 function exportData(){
