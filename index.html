@@ -265,6 +265,12 @@ textarea.form-input{height:72px;resize:vertical}
 .label-sel-chip.active{border-color:var(--navy);opacity:1}
 /* カード左ボーダーカラー */
 .card{border-left:4px solid transparent}
+/* ── トースト通知 ── */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;white-space:nowrap;opacity:0;transition:opacity .25s,transform .25s;z-index:200;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* 設定タイトル横の保存済みバッジ */
+.saved-badge{display:none;padding:2px 8px;border-radius:8px;background:var(--green-lt);color:var(--green);font-size:11px;font-weight:700;margin-left:8px;vertical-align:middle}
+.saved-badge.show{display:inline-block}
 </style>
 </head>
 <body>
@@ -352,11 +358,14 @@ textarea.form-input{height:72px;resize:vertical}
   </div>
 </div>
 
+<!-- トースト通知 -->
+<div class="toast" id="toast"></div>
+
 <!-- 設定シート -->
 <div class="sheet-overlay" id="settings-modal">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">設定</div>
+    <div class="sheet-title">設定<span class="saved-badge" id="saved-badge">✓ 保存済み</span></div>
 
     <div class="settings-section">
       <div class="settings-section-title">表示・文字サイズ</div>
@@ -967,10 +976,30 @@ function methodTagHtml(method, type){
   return `<div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:4px">${html}</div>`;
 }
 
+// ── フィードバック ──
+let toastTimer=null;
+function showToast(msg){
+  const el=document.getElementById('toast'); if(!el) return;
+  el.textContent=msg; el.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2000);
+}
+let badgeTimer=null;
+function showSavedBadge(){
+  const el=document.getElementById('saved-badge'); if(!el) return;
+  el.classList.add('show');
+  if(badgeTimer) clearTimeout(badgeTimer);
+  badgeTimer=setTimeout(()=>el.classList.remove('show'),3000);
+}
+function settingChanged(msg){
+  showToast(msg||'設定を保存しました');
+  showSavedBadge();
+}
+
 // ── 設定データ ──
 const DEFAULT_SETTINGS={showSummary:true,showPastVisit:false,fontSize:'normal',baseDateMode:'today',customBaseDate:''};
 let settings=Object.assign({},DEFAULT_SETTINGS,JSON.parse(localStorage.getItem('dorakuru_settings')||'{}'));
-function saveSetting(key,val){ settings[key]=val; localStorage.setItem('dorakuru_settings',JSON.stringify(settings)); applySettings(); }
+function saveSetting(key,val){ settings[key]=val; localStorage.setItem('dorakuru_settings',JSON.stringify(settings)); applySettings(); settingChanged('設定を保存しました'); }
 function applySettings(){
   // ── 文字サイズ ──
   const sz={small:'12px',normal:'14px',large:'16px'};
@@ -1021,6 +1050,7 @@ function addLabel(){
   saveLabels();
   document.getElementById('new-label-name').value='';
   renderLabelChips();
+  settingChanged('ラベルを追加しました');
 }
 function deleteLabel(id){
   if(!confirm('このラベルを削除しますか？\n会社に設定されているラベルも解除されます。')) return;
@@ -1093,6 +1123,7 @@ function setFontSize(val,btn){
   settings.fontSize=val;
   localStorage.setItem('dorakuru_settings',JSON.stringify(settings));
   applySettings();
+  settingChanged('文字サイズを変更しました');
 }
 function setBaseDateMode(val,btn){
   settings.baseDateMode=val;
@@ -1100,6 +1131,7 @@ function setBaseDateMode(val,btn){
   document.getElementById('custom-date-row').style.display=val==='custom'?'block':'none';
   applySettings();
   if(val!=='custom'){
+    settingChanged('起算日を変更しました');
     renderList(document.getElementById('search')?document.getElementById('search').value:'');
   }
 }
@@ -1108,8 +1140,8 @@ function applyCustomBase(){
   if(!d){ alert('日付を選択してください'); return; }
   settings.customBaseDate=d;
   localStorage.setItem('dorakuru_settings',JSON.stringify(settings));
-  updateBaseDateLabel(); renderList();
-  alert('起算日を '+d+' に設定しました');
+  applySettings(); renderList();
+  settingChanged('起算日を '+d+' に設定しました');
 }
 function getBaseDate(){
   if(settings.baseDateMode==='month'){ const d=new Date(); d.setDate(1); return fmtDate(d); }
