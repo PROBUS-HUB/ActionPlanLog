@@ -231,6 +231,38 @@ textarea.form-input{height:72px;resize:vertical}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .hist-method-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;background:var(--blue-lt);color:var(--blue);margin-right:4px;margin-bottom:4px}
 .hist-type-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;background:var(--bg2);color:var(--text2);margin-bottom:4px}
+/* ── 設定画面 ── */
+.settings-section{margin-bottom:20px}
+.settings-section-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border-bottom:none}
+.settings-label{font-size:13px;font-weight:600;color:var(--text)}
+.settings-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.seg-group{display:flex;gap:4px;background:var(--bg2);border-radius:var(--radius);padding:3px}
+.seg-btn{flex:1;padding:6px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:none;color:var(--text2)}
+.seg-btn.active{background:var(--bg);color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.toggle-wrap{position:relative;width:44px;height:26px;flex-shrink:0}
+.toggle-wrap input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{display:block;width:44px;height:26px;border-radius:13px;background:var(--border2);cursor:pointer;transition:background .2s}
+.toggle-wrap input:checked+.toggle-track{background:var(--blue)}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;pointer-events:none}
+.toggle-wrap input:checked~.toggle-thumb{transform:translateX(18px)}
+/* ラベル管理 */
+.label-chip-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.label-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;font-size:12px;font-weight:600;cursor:default}
+.label-chip-del{border:none;background:none;cursor:pointer;font-size:13px;color:rgba(0,0,0,.4);padding:0 0 0 2px;line-height:1}
+.label-add-row{display:flex;gap:6px;align-items:center;margin-top:6px}
+.label-add-row input{flex:1;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;color:var(--text);background:var(--bg);font-family:inherit;outline:none}
+.label-add-row input:focus{border-color:var(--blue)}
+.color-picks{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.color-pick{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent}
+.color-pick.active{border-color:var(--navy)}
+/* 会社ラベル選択 */
+.label-select-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.label-sel-chip{padding:5px 12px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid transparent;opacity:.5}
+.label-sel-chip.active{border-color:var(--navy);opacity:1}
+/* カード左ボーダーカラー */
+.card{border-left:4px solid transparent}
 </style>
 </head>
 <body>
@@ -242,6 +274,7 @@ textarea.form-input{height:72px;resize:vertical}
     </div>
     <button class="hbtn" onclick="exportData()">書き出し</button>
     <label class="hbtn" style="cursor:pointer">読み込み<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+    <button class="hbtn" onclick="openSettings()" style="background:rgba(255,255,255,0.15)">⚙ 設定</button>
   </div>
 
   <div class="content">
@@ -317,7 +350,83 @@ textarea.form-input{height:72px;resize:vertical}
   </div>
 </div>
 
-<!-- 会社追加・編集 -->
+<!-- 設定シート -->
+<div class="sheet-overlay" id="settings-modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">設定</div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">表示・文字サイズ</div>
+      <div class="settings-row">
+        <div><div class="settings-label">文字サイズ</div><div class="settings-sub">カード・履歴の本文サイズ</div></div>
+        <div class="seg-group" id="seg-fontsize">
+          <button class="seg-btn" data-val="small" onclick="setFontSize('small',this)">小</button>
+          <button class="seg-btn active" data-val="normal" onclick="setFontSize('normal',this)">標準</button>
+          <button class="seg-btn" data-val="large" onclick="setFontSize('large',this)">大</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">カレンダーサマリ</div><div class="settings-sub">カレンダー下部の一覧表示</div></div>
+        <label class="toggle-wrap">
+          <input type="checkbox" id="tog-summary" onchange="saveSetting('showSummary',this.checked);renderCalView()">
+          <span class="toggle-track"></span>
+          <span class="toggle-thumb"></span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">過去の訪問記録をカレンダーに表示</div></div>
+        <label class="toggle-wrap">
+          <input type="checkbox" id="tog-pastvisit" onchange="saveSetting('showPastVisit',this.checked);renderCalView()">
+          <span class="toggle-track"></span>
+          <span class="toggle-thumb"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">起算日の設定</div>
+      <div class="settings-row">
+        <div><div class="settings-label">アプリ全体の基準日</div><div class="settings-sub">経過日数の計算起点</div></div>
+        <div class="seg-group" id="seg-basedate">
+          <button class="seg-btn active" data-val="today" onclick="setBaseDateMode('today',this)">今日</button>
+          <button class="seg-btn" data-val="month" onclick="setBaseDateMode('month',this)">月初</button>
+          <button class="seg-btn" data-val="custom" onclick="setBaseDateMode('custom',this)">任意</button>
+        </div>
+      </div>
+      <div id="custom-date-row" style="display:none;padding:8px 0">
+        <div class="settings-sub" style="margin-bottom:6px">任意の起算日を指定</div>
+        <div class="date-wrap">
+          <input id="s-basedate" placeholder="YYYY-MM-DD" readonly>
+          <button class="calbtn" onclick="openCal('s-basedate')">カレンダー</button>
+        </div>
+        <button class="sfbtn save" style="width:100%;margin-top:4px" onclick="applyCustomBase()">適用する</button>
+      </div>
+      <div class="settings-row" style="padding-top:6px">
+        <div><div class="settings-label">現在の基準日</div></div>
+        <div style="font-size:13px;font-weight:700;color:var(--blue)" id="current-base-label">—</div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">ラベル管理（グループ分けカラー）</div>
+      <div class="label-chip-list" id="label-chip-list"></div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px">新しいラベルの色を選択</div>
+      <div class="color-picks" id="color-picks"></div>
+      <div class="label-add-row" style="margin-top:10px">
+        <input id="new-label-name" placeholder="ラベル名（例: 重要・エリアA）" maxlength="16">
+        <button class="sfbtn save" style="flex:0 0 auto;padding:8px 14px" onclick="addLabel()">追加</button>
+      </div>
+    </div>
+
+    <div class="sheet-footer">
+      <button class="sfbtn" onclick="closeSettings()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 会社フォームのラベル選択（add-modal内に動的挿入）-->
+
 <div class="sheet-overlay" id="add-modal">
   <div class="sheet">
     <div class="sheet-handle"></div>
@@ -326,6 +435,8 @@ textarea.form-input{height:72px;resize:vertical}
     <input class="form-input" id="f-name" placeholder="株式会社〇〇">
     <label class="form-label">担当者名</label>
     <input class="form-input" id="f-contact" placeholder="山田 太郎">
+    <label class="form-label">グループラベル</label>
+    <div class="label-select-list" id="f-label-list"></div>
     <label class="form-label">主な対応方法</label>
     <div class="method-group" id="f-method-group">
       <button type="button" class="method-btn" data-val="電話" onclick="selectMethod(this,'f-method-group','f-type-area')">
@@ -503,8 +614,8 @@ function lastVisit(c){ if(!c.visits||!c.visits.length) return null; return c.vis
 function sinceDays(c){
   const lv=lastVisit(c); if(!lv) return null;
   const d=new Date(lv.date); d.setHours(0,0,0,0);
-  const n=new Date(); n.setHours(0,0,0,0);
-  return Math.round((n-d)/864e5);
+  const base=new Date(getBaseDate()); base.setHours(0,0,0,0);
+  return Math.round((base-d)/864e5);
 }
 function contractAlert(c){
   if(!c.contracts||!c.contracts.length) return null;
@@ -548,30 +659,32 @@ function cvGoToday(){ cvYear=new Date().getFullYear(); cvMonth=new Date().getMon
 function cvMove(d){ cvMonth+=d; if(cvMonth<0){cvMonth=11;cvYear--;} if(cvMonth>11){cvMonth=0;cvYear++;} renderCalView(); }
 
 function buildEventMap(){
-  // { 'YYYY-MM-DD': [{type,company,label,sub}] }
   const map={};
   const todayStr=fmtDate(new Date());
   data.companies.forEach(c=>{
-    // 訪問予定
+    // 訪問予定（nextVisit）
     if(c.nextVisit){
       if(!map[c.nextVisit]) map[c.nextVisit]=[];
       map[c.nextVisit].push({type:'visit',id:c.id,name:c.name,sub:'次回訪問予定'});
     }
-    // 過去の訪問履歴
-    (c.visits||[]).forEach(v=>{
-      if(v.date<todayStr){
-        if(!map[v.date]) map[v.date]=[];
-        map[v.date].push({type:'past-visit',id:c.id,name:c.name,sub:v.memo||'訪問記録'});
-      }
-    });
-    // 契約終了日
+    // 過去の訪問履歴（設定でONの場合のみ）
+    if(settings.showPastVisit){
+      (c.visits||[]).forEach(v=>{
+        if(v.date<todayStr){
+          if(!map[v.date]) map[v.date]=[];
+          map[v.date].push({type:'past-visit',id:c.id,name:c.name,sub:v.memo||'訪問記録'});
+        }
+      });
+    }
+    // 契約終了日（alertDays以内ならwarn、期限切れならdanger）
     const al=c.alertDays||60;
     (c.contracts||[]).forEach(ct=>{
       if(!ct.end) return;
-      if(!map[ct.end]) map[ct.end]=[];
       const d=daysDiff(ct.end);
-      const t=d<0?'contract-danger':'contract-warn';
-      map[ct.end].push({type:t,id:c.id,name:c.name,sub:(ct.label||'契約')+'終了日'});
+      // アラート期間内または期限切れのみ表示
+      if(d>al) return;
+      if(!map[ct.end]) map[ct.end]=[];
+      map[ct.end].push({type:d<0?'contract-danger':'contract-warn',id:c.id,name:c.name,sub:(ct.label||'契約')+'終了日'});
     });
   });
   return map;
@@ -609,15 +722,22 @@ function renderCalView(){
   for(let i=1;i<=rem;i++) gridHtml+=`<div class="cv-cell other"><span class="cv-date-num">${i}</span></div>`;
   document.getElementById('cv-grid').innerHTML=gridHtml;
 
-  // 月サマリ（訪問予定と契約終了のみ）
+  // 月サマリ表示判定
+  const summaryEl=document.getElementById('cv-summary');
+  if(settings.showSummary===false){ summaryEl.innerHTML=''; return; }
+  // 月サマリ（訪問予定・契約終了のみ、表示月のキーを全走査）
   const DOW_JP=['日','月','火','水','木','金','土'];
+  const monthPrefix=String(cvYear)+'-'+String(cvMonth+1).padStart(2,'0');
   const summaryItems=[];
-  for(let d=1;d<=last.getDate();d++){
-    const dt=new Date(cvYear,cvMonth,d), ds=fmtDate(dt);
-    const evs=(evMap[ds]||[]).filter(e=>e.type==='visit'||e.type==='contract-danger'||e.type==='contract-warn');
-    evs.forEach(e=>summaryItems.push({ds,dt,e}));
-  }
-  summaryItems.sort((a,b)=>a.ds.localeCompare(b.ds));
+  Object.keys(evMap)
+    .filter(ds=>ds.startsWith(monthPrefix))
+    .sort()
+    .forEach(ds=>{
+      const dt=new Date(ds);
+      (evMap[ds]||[])
+        .filter(e=>e.type==='visit'||e.type==='contract-danger'||e.type==='contract-warn')
+        .forEach(e=>summaryItems.push({ds,dt,e}));
+    });
   if(!summaryItems.length){
     document.getElementById('cv-summary').innerHTML=`<div class="cv-summary-title">この月の予定 <span class="cv-summary-count">0件</span></div><div style="font-size:13px;color:var(--text3);padding:8px 0">この月に登録された訪問予定・契約終了はありません</div>`;
     return;
@@ -709,8 +829,9 @@ function renderList(q){
     }
     const contractsHtml=c.contracts&&c.contracts.length?`<div class="contract-list">${c.contracts.map(ct=>`<div class="contract-item"><span class="contract-name">${ct.label||'契約'}</span><span class="contract-end">${ct.end?'終了: '+ct.end:'終了日未設定'}</span></div>`).join('')}</div>`:'';
     const memoHtml=c.memo?`<div class="memo-box">${c.memo}</div>`:'';
-    return `<div class="card"><div class="card-main">
+    return `<div class="card" style="${labelBarStyle(c)}"><div class="card-main">
       ${alertHtml}
+      ${labelTagHtml(c)}
       <div class="company-row">
         <div class="company-initial">${initials(c.name)}</div>
         <div class="company-info"><div class="company-name">${c.name}</div><div class="company-contact">${c.contact||'担当者未登録'}</div></div>
@@ -808,6 +929,138 @@ function methodTagHtml(method, type){
   return `<div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:4px">${html}</div>`;
 }
 
+// ── 設定データ ──
+const DEFAULT_SETTINGS={showSummary:true,showPastVisit:false,fontSize:'normal',baseDateMode:'today',customBaseDate:''};
+let settings=Object.assign({},DEFAULT_SETTINGS,JSON.parse(localStorage.getItem('dorakuru_settings')||'{}'));
+function saveSetting(key,val){ settings[key]=val; localStorage.setItem('dorakuru_settings',JSON.stringify(settings)); applySettings(); }
+function applySettings(){
+  // 文字サイズ
+  const sz={small:'12px',normal:'14px',large:'16px'};
+  document.body.style.fontSize=sz[settings.fontSize]||'14px';
+}
+applySettings();
+
+// ── ラベルデータ ──
+const PRESET_COLORS=['#E53E3E','#DD6B20','#D69E2E','#38A169','#3182CE','#805AD5','#D53F8C','#2D3748'];
+let labels=JSON.parse(localStorage.getItem('dorakuru_labels')||'[]');
+let newLabelColor=PRESET_COLORS[0];
+function saveLabels(){ localStorage.setItem('dorakuru_labels',JSON.stringify(labels)); }
+function addLabel(){
+  const name=document.getElementById('new-label-name').value.trim();
+  if(!name) return;
+  if(labels.find(l=>l.name===name)){ alert('同じ名前のラベルがすでにあります'); return; }
+  labels.push({id:'l'+Date.now(),name,color:newLabelColor});
+  saveLabels();
+  document.getElementById('new-label-name').value='';
+  renderLabelChips();
+}
+function deleteLabel(id){
+  if(!confirm('このラベルを削除しますか？\n会社に設定されているラベルも解除されます。')) return;
+  labels=labels.filter(l=>l.id!==id);
+  data.companies.forEach(c=>{ if(c.labelId===id) c.labelId=''; });
+  saveLabels(); save();
+  renderLabelChips();
+  renderList(document.getElementById('search')?document.getElementById('search').value:'');
+}
+function renderLabelChips(){
+  const el=document.getElementById('label-chip-list');
+  if(!el) return;
+  if(!labels.length){ el.innerHTML='<div style="font-size:12px;color:var(--text3)">ラベルがまだありません</div>'; return; }
+  el.innerHTML=labels.map(l=>`
+    <span class="label-chip" style="background:${l.color}22;color:${l.color};border:1.5px solid ${l.color}">
+      ${l.name}
+      <button class="label-chip-del" onclick="deleteLabel('${l.id}')">×</button>
+    </span>`).join('');
+}
+function renderColorPicks(){
+  const el=document.getElementById('color-picks'); if(!el) return;
+  el.innerHTML=PRESET_COLORS.map(c=>`
+    <div class="color-pick ${c===newLabelColor?'active':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`).join('');
+}
+function pickColor(c){ newLabelColor=c; renderColorPicks(); }
+
+// 会社フォームのラベル選択
+function renderFormLabels(selectedId){
+  const el=document.getElementById('f-label-list'); if(!el) return;
+  if(!labels.length){ el.innerHTML='<div style="font-size:11px;color:var(--text3);margin-bottom:12px">設定画面でラベルを作成してください</div>'; return; }
+  el.innerHTML=labels.map(l=>`
+    <span class="label-sel-chip ${l.id===selectedId?'active':''}"
+      style="background:${l.color}22;color:${l.color};border-color:${l.color}"
+      onclick="toggleFormLabel('${l.id}',this)">${l.name}</span>`).join('');
+}
+let formLabelId='';
+function toggleFormLabel(id,el){
+  if(formLabelId===id){ formLabelId=''; document.querySelectorAll('.label-sel-chip').forEach(e=>e.classList.remove('active')); }
+  else{ formLabelId=id; document.querySelectorAll('.label-sel-chip').forEach(e=>e.classList.remove('active')); el.classList.add('active'); }
+}
+
+// カードのラベルバー
+function labelBarStyle(c){
+  if(!c.labelId) return '';
+  const l=labels.find(x=>x.id===c.labelId);
+  return l?`border-left-color:${l.color}`:'';
+}
+function labelTagHtml(c){
+  if(!c.labelId) return '';
+  const l=labels.find(x=>x.id===c.labelId);
+  if(!l) return '';
+  return `<span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;background:${l.color}22;color:${l.color};margin-bottom:8px">${l.name}</span>`;
+}
+
+// ── 設定シート ──
+function openSettings(){
+  // トグル同期
+  document.getElementById('tog-summary').checked=settings.showSummary!==false;
+  document.getElementById('tog-pastvisit').checked=!!settings.showPastVisit;
+  // 文字サイズセグメント
+  document.querySelectorAll('#seg-fontsize .seg-btn').forEach(b=>{
+    b.classList.toggle('active',b.dataset.val===settings.fontSize);
+  });
+  // 起算日セグメント
+  document.querySelectorAll('#seg-basedate .seg-btn').forEach(b=>{
+    b.classList.toggle('active',b.dataset.val===(settings.baseDateMode||'today'));
+  });
+  document.getElementById('custom-date-row').style.display=settings.baseDateMode==='custom'?'block':'none';
+  document.getElementById('s-basedate').value=settings.customBaseDate||'';
+  updateBaseDateLabel();
+  // ラベル
+  renderLabelChips();
+  renderColorPicks();
+  document.getElementById('settings-modal').classList.add('open');
+  hideChrome();
+}
+function closeSettings(){ document.getElementById('settings-modal').classList.remove('open'); showChrome(); renderList(document.getElementById('search')?document.getElementById('search').value:''); }
+function setFontSize(val,btn){
+  document.querySelectorAll('#seg-fontsize .seg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  saveSetting('fontSize',val);
+}
+function setBaseDateMode(val,btn){
+  document.querySelectorAll('#seg-basedate .seg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  settings.baseDateMode=val;
+  document.getElementById('custom-date-row').style.display=val==='custom'?'block':'none';
+  if(val!=='custom'){ localStorage.setItem('dorakuru_settings',JSON.stringify(settings)); updateBaseDateLabel(); renderList(); }
+}
+function applyCustomBase(){
+  const d=document.getElementById('s-basedate').value;
+  if(!d){ alert('日付を選択してください'); return; }
+  settings.customBaseDate=d;
+  localStorage.setItem('dorakuru_settings',JSON.stringify(settings));
+  updateBaseDateLabel(); renderList();
+  alert('起算日を '+d+' に設定しました');
+}
+function getBaseDate(){
+  if(settings.baseDateMode==='month'){ const d=new Date(); d.setDate(1); return fmtDate(d); }
+  if(settings.baseDateMode==='custom'&&settings.customBaseDate) return settings.customBaseDate;
+  return fmtDate(new Date());
+}
+function updateBaseDateLabel(){
+  const el=document.getElementById('current-base-label'); if(!el) return;
+  const m={'today':'今日（'+fmtDate(new Date())+'）','month':'月初（'+fmtDate(new Date()).slice(0,7)+'-01）','custom':settings.customBaseDate||'未設定'};
+  el.textContent=m[settings.baseDateMode||'today'];
+}
+
 // ── UI表示制御（シート開閉時にヘッダー・ナビを隠す） ──
 function hideChrome(){
   document.querySelector('.header').style.display='none';
@@ -838,6 +1091,7 @@ function openAdd(){
   document.getElementById('f-interval').value='30'; document.getElementById('f-alert-days').value='60';
   document.getElementById('contracts-form').innerHTML=''; cCount=0;
   resetMethodGroup('f-method-group','f-type-area');
+  formLabelId=''; renderFormLabels('');
   document.getElementById('add-modal').classList.add('open');
   hideChrome();
 }
@@ -853,6 +1107,7 @@ function openEdit(id){
   document.getElementById('contracts-form').innerHTML=''; cCount=0;
   (c.contracts||[]).forEach(ct=>addCRow(ct.label,ct.end));
   setMethodGroup('f-method-group','f-type-area',c.defaultMethod||'',c.defaultType||'');
+  formLabelId=c.labelId||''; renderFormLabels(formLabelId);
   document.getElementById('add-modal').classList.add('open');
   hideChrome();
 }
@@ -868,6 +1123,7 @@ function saveCompany(){
     alertDays:parseInt(document.getElementById('f-alert-days').value)||60,
     defaultMethod:getSelected('f-method-group','.method-btn'),
     defaultType:getSelected('f-type-group','.type-btn'),
+    labelId:formLabelId,
     contracts};
   if(editId){ const c=data.companies.find(x=>x.id===editId); if(c) Object.assign(c,obj); }
   else data.companies.push({id:'c'+Date.now(),visits:[],...obj});
@@ -981,6 +1237,7 @@ function importData(e){
 }
 
 // 初期表示はカレンダー
+applySettings();
 renderCalView();
 // 会社一覧データも事前読み込み
 renderList();
