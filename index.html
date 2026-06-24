@@ -16,8 +16,10 @@
   --red:#991B1B;--red-lt:#FEE2E2;
   --navy:#0F172A;
   --radius:6px;--radius-lg:10px;
+  --app-font-size:14px;
 }
-html,body{height:100%;background:var(--bg2);font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;font-size:14px;color:var(--text);line-height:1.5}
+html,body{height:100%;background:var(--bg2);font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;font-size:var(--app-font-size);color:var(--text);line-height:1.5}
+.card,.sheet,.cv-summary,.hist-body,.form-input,.abtn,.sfbtn{font-size:var(--app-font-size)}
 .app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
 .header{background:var(--navy);padding:14px 16px 12px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
 .header-title{color:#fff;font-size:16px;font-weight:700;flex:1;letter-spacing:.3px}
@@ -753,8 +755,17 @@ function renderCalView(){
     else if(e.type==='contract-danger') chipHtml=`<span class="cv-chip cv-chip-danger">契約期限切れ</span>`;
     else chipHtml=`<span class="cv-chip cv-chip-warn">要更新</span>`;
     const isPast=ds<fmtDate(new Date());
-    return `<div class="cv-summary-row" onclick="openDayModal('${ds}')">
-      <div class="cv-summary-date-block">
+    // 削除ボタン：訪問予定は予定日クリア、契約系は編集画面へ誘導
+    let delBtn='';
+    if(e.type==='visit'){
+      delBtn=`<button onclick="event.stopPropagation();clearNextVisitFromSummary('${e.id}')"
+        style="flex-shrink:0;padding:5px 10px;border:1px solid #FCA5A5;border-radius:6px;background:none;color:#991B1B;font-size:11px;font-weight:700;cursor:pointer">削除</button>`;
+    } else {
+      delBtn=`<button onclick="event.stopPropagation();openEdit('${e.id}');renderCalView()"
+        style="flex-shrink:0;padding:5px 10px;border:1px solid var(--border2);border-radius:6px;background:none;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer">編集</button>`;
+    }
+    return `<div class="cv-summary-row" onclick="openDayModal('${ds}')" style="align-items:flex-start;gap:8px">
+      <div class="cv-summary-date-block" style="padding-top:2px">
         <div class="cv-summary-month">${monthStr}</div>
         <div class="cv-summary-day" style="${isPast?'color:var(--text3)':''}">${dayStr}</div>
         <div class="cv-summary-dow" style="${dowColor}">${dowStr}曜</div>
@@ -762,8 +773,9 @@ function renderCalView(){
       <div class="cv-summary-body">
         <div class="cv-summary-name">${e.name}</div>
         <div class="cv-summary-sub">${e.sub||''}</div>
+        <div style="margin-top:6px">${chipHtml}</div>
       </div>
-      ${chipHtml}
+      ${delBtn}
     </div>`;
   }).join('');
   document.getElementById('cv-summary').innerHTML=`<div class="cv-summary-title">この月の予定 <span class="cv-summary-count">${summaryItems.length}件</span></div>${rows}`;
@@ -779,17 +791,27 @@ function openDayModal(ds){
   if(!evs.length){ document.getElementById('day-modal-content').innerHTML='<div style="color:var(--text3);font-size:13px;padding:8px 0">この日の予定はありません</div>'; }
   else {
     document.getElementById('day-modal-content').innerHTML=evs.map(e=>{
-      let barCls='day-type-bar bar-past', labelTxt='過去の訪問記録', btnHtml='';
-      if(e.type==='visit'){ barCls='day-type-bar bar-visit'; labelTxt='次回訪問予定'; btnHtml=`<div style="margin-top:10px"><button class="abtn primary" style="padding:10px 0" onclick="closeDayModal();openVisit('${e.id}')">この日の訪問を記録する</button></div>`; }
-      else if(e.type==='contract-danger'){ barCls='day-type-bar bar-contract'; labelTxt='契約期限切れ'; }
-      else if(e.type==='contract-warn'){ barCls='day-type-bar bar-contract-warn'; labelTxt='契約更新が必要'; }
+      let barCls='day-type-bar bar-past', labelTxt='過去の訪問記録', actHtml='';
+      if(e.type==='visit'){
+        barCls='day-type-bar bar-visit'; labelTxt='次回訪問予定';
+        actHtml=`<div style="display:flex;gap:6px;margin-top:10px">
+          <button class="abtn primary" style="padding:10px 0" onclick="closeDayModal();openVisit('${e.id}')">訪問を記録する</button>
+          <button class="abtn" style="padding:10px 0;color:#991B1B;border-color:#FCA5A5;flex:0 0 64px" onclick="clearNextVisitFromDay('${e.id}')">削除</button>
+        </div>`;
+      } else if(e.type==='contract-danger'){
+        barCls='day-type-bar bar-contract'; labelTxt='契約期限切れ';
+        actHtml=`<div style="margin-top:10px"><button class="abtn" style="padding:9px 0;width:100%" onclick="closeDayModal();openEdit('${e.id}')">契約情報を編集する</button></div>`;
+      } else if(e.type==='contract-warn'){
+        barCls='day-type-bar bar-contract-warn'; labelTxt='契約更新が必要';
+        actHtml=`<div style="margin-top:10px"><button class="abtn" style="padding:9px 0;width:100%" onclick="closeDayModal();openEdit('${e.id}')">契約情報を編集する</button></div>`;
+      }
       return `<div class="day-detail-item">
         <div class="${barCls}"></div>
         <div style="flex:1">
           <div class="day-detail-label">${labelTxt}</div>
           <div class="day-detail-name">${e.name}</div>
           <div class="day-detail-sub">${e.sub||''}</div>
-          ${btnHtml}
+          ${actHtml}
         </div>
       </div>`;
     }).join('');
@@ -799,6 +821,22 @@ function openDayModal(ds){
 }
 
 function closeDayModal(){ document.getElementById('day-modal').classList.remove('open'); showChrome(); }
+
+// サマリからの訪問予定削除
+function clearNextVisitFromSummary(id){
+  const c=data.companies.find(x=>x.id===id); if(!c||!c.nextVisit) return;
+  if(!confirm(`「${c.name}」の次回訪問予定日（${c.nextVisit}）を削除しますか？`)) return;
+  c.nextVisit=''; save(); renderCalView();
+  renderList(document.getElementById('search')?document.getElementById('search').value:'');
+}
+// 日詳細シートからの訪問予定削除
+function clearNextVisitFromDay(id){
+  const c=data.companies.find(x=>x.id===id); if(!c||!c.nextVisit) return;
+  if(!confirm(`「${c.name}」の次回訪問予定日（${c.nextVisit}）を削除しますか？`)) return;
+  c.nextVisit=''; save();
+  closeDayModal(); renderCalView();
+  renderList(document.getElementById('search')?document.getElementById('search').value:'');
+}
 
 // ── タブ切替 ──
 function switchTab(tab,el){
@@ -934,11 +972,41 @@ const DEFAULT_SETTINGS={showSummary:true,showPastVisit:false,fontSize:'normal',b
 let settings=Object.assign({},DEFAULT_SETTINGS,JSON.parse(localStorage.getItem('dorakuru_settings')||'{}'));
 function saveSetting(key,val){ settings[key]=val; localStorage.setItem('dorakuru_settings',JSON.stringify(settings)); applySettings(); }
 function applySettings(){
-  // 文字サイズ
+  // ── 文字サイズ ──
   const sz={small:'12px',normal:'14px',large:'16px'};
-  document.body.style.fontSize=sz[settings.fontSize]||'14px';
+  const fs=sz[settings.fontSize]||'14px';
+  // body基準サイズをCSS変数で注入
+  document.documentElement.style.setProperty('--app-font-size', fs);
+  // 直接bodyにも当てる（CSS変数が効かないブラウザ対策）
+  document.body.style.fontSize=fs;
+  // カード・フォーム・シート内のテキストにも反映
+  document.querySelectorAll('.card,.sheet,.cv-summary,.hist-body,.data-val,.cname,.company-name,.elapsed-since,.elapsed-next,.memo-text,.hist-memo,.day-detail-name,.day-detail-sub,.cv-summary-name,.cv-summary-sub').forEach(el=>{
+    el.style.fontSize='';// 個別指定をリセットして継承に戻す
+  });
+
+  // ── セグメントボタンのactive同期（設定シートが開いている場合） ──
+  const fsBtns=document.querySelectorAll('#seg-fontsize .seg-btn');
+  fsBtns.forEach(b=>b.classList.toggle('active', b.dataset.val===settings.fontSize));
+
+  const bdBtns=document.querySelectorAll('#seg-basedate .seg-btn');
+  bdBtns.forEach(b=>b.classList.toggle('active', b.dataset.val===(settings.baseDateMode||'today')));
+
+  // ── トグル同期 ──
+  const togSum=document.getElementById('tog-summary');
+  if(togSum) togSum.checked=settings.showSummary!==false;
+  const togPast=document.getElementById('tog-pastvisit');
+  if(togPast) togPast.checked=!!settings.showPastVisit;
+
+  // ── 起算日表示更新 ──
+  updateBaseDateLabel();
 }
-applySettings();
+// 初期化時はフォントサイズのみ安全に適用（DOM未構築のため）
+(function initFontSize(){
+  const sz={small:'12px',normal:'14px',large:'16px'};
+  const fs=sz[settings.fontSize]||'14px';
+  document.documentElement.style.setProperty('--app-font-size',fs);
+  if(document.body) document.body.style.fontSize=fs;
+})();
 
 // ── ラベルデータ ──
 const PRESET_COLORS=['#E53E3E','#DD6B20','#D69E2E','#38A169','#3182CE','#805AD5','#D53F8C','#2D3748'];
@@ -1009,20 +1077,11 @@ function labelTagHtml(c){
 
 // ── 設定シート ──
 function openSettings(){
-  // トグル同期
-  document.getElementById('tog-summary').checked=settings.showSummary!==false;
-  document.getElementById('tog-pastvisit').checked=!!settings.showPastVisit;
-  // 文字サイズセグメント
-  document.querySelectorAll('#seg-fontsize .seg-btn').forEach(b=>{
-    b.classList.toggle('active',b.dataset.val===settings.fontSize);
-  });
-  // 起算日セグメント
-  document.querySelectorAll('#seg-basedate .seg-btn').forEach(b=>{
-    b.classList.toggle('active',b.dataset.val===(settings.baseDateMode||'today'));
-  });
+  // applySettingsがトグル・セグメント・起算日ラベルをすべて同期する
+  applySettings();
+  // カスタム起算日入力欄の表示制御
   document.getElementById('custom-date-row').style.display=settings.baseDateMode==='custom'?'block':'none';
   document.getElementById('s-basedate').value=settings.customBaseDate||'';
-  updateBaseDateLabel();
   // ラベル
   renderLabelChips();
   renderColorPicks();
@@ -1031,16 +1090,18 @@ function openSettings(){
 }
 function closeSettings(){ document.getElementById('settings-modal').classList.remove('open'); showChrome(); renderList(document.getElementById('search')?document.getElementById('search').value:''); }
 function setFontSize(val,btn){
-  document.querySelectorAll('#seg-fontsize .seg-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  saveSetting('fontSize',val);
+  settings.fontSize=val;
+  localStorage.setItem('dorakuru_settings',JSON.stringify(settings));
+  applySettings();
 }
 function setBaseDateMode(val,btn){
-  document.querySelectorAll('#seg-basedate .seg-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
   settings.baseDateMode=val;
+  localStorage.setItem('dorakuru_settings',JSON.stringify(settings));
   document.getElementById('custom-date-row').style.display=val==='custom'?'block':'none';
-  if(val!=='custom'){ localStorage.setItem('dorakuru_settings',JSON.stringify(settings)); updateBaseDateLabel(); renderList(); }
+  applySettings();
+  if(val!=='custom'){
+    renderList(document.getElementById('search')?document.getElementById('search').value:'');
+  }
 }
 function applyCustomBase(){
   const d=document.getElementById('s-basedate').value;
@@ -1216,6 +1277,15 @@ function clearNextVisit(id){
   renderList(document.getElementById('search')?document.getElementById('search').value:'');
   renderSchedule();
 }
+function clearNextVisitFromSummary(id){
+  const c=data.companies.find(x=>x.id===id); if(!c||!c.nextVisit) return;
+  if(!confirm(`「${c.name}」の次回訪問予定日（${c.nextVisit}）を削除しますか？`)) return;
+  c.nextVisit='';
+  save();
+  renderCalView();
+  renderList(document.getElementById('search')?document.getElementById('search').value:'');
+  renderSchedule();
+}
 function deleteCompany(id){
   const c=data.companies.find(x=>x.id===id); if(!c) return;
   if(!confirm(`「${c.name}」を削除しますか？\n\n訪問履歴・契約情報を含むすべてのデータが消えます。この操作は元に戻せません。`)) return;
@@ -1237,7 +1307,7 @@ function importData(e){
 }
 
 // 初期表示はカレンダー
-applySettings();
+applySettings(); // DOM構築後にフルで適用
 renderCalView();
 // 会社一覧データも事前読み込み
 renderList();
