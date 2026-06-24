@@ -280,8 +280,6 @@ textarea.form-input{height:72px;resize:vertical}
       <div class="header-title">訪問管理台帳</div>
       <div class="header-sub">ドラクル 営業管理システム</div>
     </div>
-    <button class="hbtn" onclick="exportData()">書き出し</button>
-    <label class="hbtn" style="cursor:pointer">読み込み<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
     <button class="hbtn" onclick="openSettings()" style="background:rgba(255,255,255,0.15)">⚙ 設定</button>
   </div>
 
@@ -427,6 +425,27 @@ textarea.form-input{height:72px;resize:vertical}
       <div class="label-add-row" style="margin-top:10px">
         <input id="new-label-name" placeholder="ラベル名（例: 重要・エリアA）" maxlength="16">
         <button class="sfbtn save" style="flex:0 0 auto;padding:8px 14px" onclick="addLabel()">追加</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">データ管理</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">データを書き出す</div>
+          <div class="settings-sub">全データをJSONファイルで保存</div>
+        </div>
+        <button class="sfbtn save" style="flex:0 0 auto;padding:8px 16px" onclick="exportData();settingChanged('書き出しました')">書き出し</button>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">データを読み込む</div>
+          <div class="settings-sub">JSONファイルからインポート</div>
+        </div>
+        <label class="sfbtn" style="flex:0 0 auto;padding:8px 16px;cursor:pointer;margin:0">
+          読み込み
+          <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+        </label>
       </div>
     </div>
 
