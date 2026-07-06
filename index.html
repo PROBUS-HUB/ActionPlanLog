@@ -271,6 +271,10 @@ textarea.form-input{height:72px;resize:vertical}
 /* 設定タイトル横の保存済みバッジ */
 .saved-badge{display:none;padding:2px 8px;border-radius:8px;background:var(--green-lt);color:var(--green);font-size:11px;font-weight:700;margin-left:8px;vertical-align:middle}
 .saved-badge.show{display:inline-block}
+/* ── カレンダードラッグ ── */
+.cv-cell.drag-over{background:#DBEAFE !important;outline:2px dashed var(--blue);outline-offset:-2px}
+.cv-event.dragging{opacity:.4;transform:scale(.95)}
+.drag-ghost{position:fixed;pointer-events:none;z-index:500;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;background:var(--blue);color:#fff;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.25);transform:translate(-50%,-50%)}
 </style>
 </head>
 <body>
@@ -593,6 +597,8 @@ function save(){ localStorage.setItem('dorakuru_visit_v1', JSON.stringify(data))
 
 // ── 日付ユーティリティ ──
 function fmtDate(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// 文字列 "YYYY-MM-DD" をローカルタイムで安全にDateに変換
+function parseLocalDate(ds){ if(!ds) return null; const p=ds.split('-'); return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2])); }
 function fmtDisp(ds){ if(!ds) return ''; const p=ds.split('-'); return p[0]+'年'+parseInt(p[1])+'月'+parseInt(p[2])+'日'; }
 const MONTHS_JP=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 
@@ -635,15 +641,15 @@ function calPick(ds){ calSel=ds; renderPickerCal(); }
 function initials(n){ return (n||'?').replace(/株式会社|有限会社|合同会社/g,'').trim().slice(0,2)||'?'; }
 function daysDiff(s){
   if(!s) return null;
-  const d=new Date(s); d.setHours(0,0,0,0);
+  const d=parseLocalDate(s);
   const n=new Date(); n.setHours(0,0,0,0);
   return Math.round((d-n)/864e5);
 }
-function lastVisit(c){ if(!c.visits||!c.visits.length) return null; return c.visits.slice().sort((a,b)=>new Date(b.date)-new Date(a.date))[0]; }
+function lastVisit(c){ if(!c.visits||!c.visits.length) return null; return c.visits.slice().sort((a,b)=>parseLocalDate(b.date)-parseLocalDate(a.date))[0]; }
 function sinceDays(c){
   const lv=lastVisit(c); if(!lv) return null;
-  const d=new Date(lv.date); d.setHours(0,0,0,0);
-  const base=new Date(getBaseDate()); base.setHours(0,0,0,0);
+  const d=parseLocalDate(lv.date);
+  const base=parseLocalDate(getBaseDate()); base.setHours(0,0,0,0);
   return Math.round((base-d)/864e5);
 }
 function contractAlert(c){
@@ -699,7 +705,7 @@ function buildEventMap(){
     // 過去の訪問履歴（設定でONの場合のみ）
     if(settings.showPastVisit){
       (c.visits||[]).forEach(v=>{
-        if(v.date<todayStr){
+        if(v.date && v.date < todayStr){
           if(!map[v.date]) map[v.date]=[];
           map[v.date].push({type:'past-visit',id:c.id,name:c.name,sub:v.memo||'訪問記録'});
         }
@@ -742,14 +748,15 @@ function renderCalView(){
     const dateNumHtml=ds===todayStr
       ?`<span class="cv-date-num"><span class="cv-today-circle">${d}</span></span>`
       :`<span class="cv-date-num">${d}</span>`;
-    const evHtml=evs.slice(0,2).map(e=>`<span class="cv-event ${e.type}">${e.name}</span>`).join('');
+    const evHtml=evs.slice(0,2).map(e=>`<span class="cv-event ${e.type}" data-company-id="${e.id}" data-etype="${e.type}">${e.name}</span>`).join('');
     const moreHtml=evs.length>2?`<span class="cv-more">他${evs.length-2}件</span>`:'';
     const clickAttr=evs.length?`onclick="openDayModal('${ds}')"`:'' ;
-    gridHtml+=`<div class="${cls}" ${clickAttr}>${dateNumHtml}${evHtml}${moreHtml}</div>`;
+    gridHtml+=`<div class="${cls}" data-date="${ds}" ${clickAttr}>${dateNumHtml}${evHtml}${moreHtml}</div>`;
   }
   const rem=(7-(first.getDay()+last.getDate())%7)%7;
   for(let i=1;i<=rem;i++) gridHtml+=`<div class="cv-cell other"><span class="cv-date-num">${i}</span></div>`;
   document.getElementById('cv-grid').innerHTML=gridHtml;
+  initCalDrag();
 
   // 月サマリ表示判定
   const summaryEl=document.getElementById('cv-summary');
@@ -863,6 +870,95 @@ function clearNextVisitFromDay(id){
   c.nextVisit=''; save();
   closeDayModal(); renderCalView();
   renderList(document.getElementById('search')?document.getElementById('search').value:'');
+}
+
+// ── カレンダードラッグ（タッチ長押し） ──
+function initCalDrag(){
+  const grid=document.getElementById('cv-grid'); if(!grid) return;
+  let dragCompanyId=null, dragEtype=null, ghost=null, holdTimer=null, dragging=false, srcChip=null;
+
+  function getCell(x,y){
+    const els=document.elementsFromPoint(x,y);
+    for(const el of els){ if(el.classList&&el.classList.contains('cv-cell')&&el.dataset.date) return el; }
+    return null;
+  }
+  function clearDragOver(){
+    grid.querySelectorAll('.cv-cell.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  }
+  function createGhost(name,x,y){
+    ghost=document.createElement('div');
+    ghost.className='drag-ghost';
+    ghost.textContent=name;
+    ghost.style.left=x+'px'; ghost.style.top=y+'px';
+    document.body.appendChild(ghost);
+  }
+  function moveGhost(x,y){ if(ghost){ ghost.style.left=x+'px'; ghost.style.top=y+'px'; } }
+  function removeGhost(){ if(ghost){ ghost.remove(); ghost=null; } }
+
+  grid.addEventListener('touchstart',e=>{
+    const chip=e.target.closest('.cv-event');
+    if(!chip||!chip.dataset.companyId) return;
+    const etype=chip.dataset.etype;
+    if(etype!=='visit') return; // 訪問予定のみ移動可
+    srcChip=chip;
+    dragCompanyId=chip.dataset.companyId;
+    dragEtype=etype;
+    const touch=e.touches[0];
+    holdTimer=setTimeout(()=>{
+      dragging=true;
+      srcChip.classList.add('dragging');
+      createGhost(chip.textContent.trim(),touch.clientX,touch.clientY);
+      // クリックイベントが誤発火しないよう親セルのonclickを一時解除
+      const cell=chip.closest('.cv-cell');
+      if(cell) cell._savedClick=cell.getAttribute('onclick'), cell.removeAttribute('onclick');
+    },500); // 500ms長押しでドラッグ開始
+  },{passive:true});
+
+  grid.addEventListener('touchmove',e=>{
+    if(holdTimer&&!dragging){ clearTimeout(holdTimer); holdTimer=null; return; }
+    if(!dragging) return;
+    e.preventDefault();
+    const touch=e.touches[0];
+    moveGhost(touch.clientX,touch.clientY);
+    clearDragOver();
+    const cell=getCell(touch.clientX,touch.clientY);
+    if(cell&&cell.dataset.date) cell.classList.add('drag-over');
+  },{passive:false});
+
+  grid.addEventListener('touchend',e=>{
+    clearTimeout(holdTimer); holdTimer=null;
+    if(!dragging){ dragging=false; dragCompanyId=null; return; }
+    const touch=e.changedTouches[0];
+    const targetCell=getCell(touch.clientX,touch.clientY);
+    const newDate=targetCell&&targetCell.dataset.date?targetCell.dataset.date:null;
+
+    // onclickを復元
+    if(srcChip){
+      const cell=srcChip.closest('.cv-cell');
+      if(cell&&cell._savedClick){ cell.setAttribute('onclick',cell._savedClick); delete cell._savedClick; }
+      srcChip.classList.remove('dragging');
+    }
+    clearDragOver(); removeGhost(); dragging=false;
+
+    if(!newDate||!dragCompanyId){ dragCompanyId=null; srcChip=null; return; }
+    const c=data.companies.find(x=>x.id===dragCompanyId);
+    if(!c){ dragCompanyId=null; srcChip=null; return; }
+    if(c.nextVisit===newDate){ dragCompanyId=null; srcChip=null; return; }
+
+    if(confirm(`「${c.name}」の訪問予定を\n${fmtDisp(newDate)}に移動しますか？`)){
+      c.nextVisit=newDate; save();
+      showToast(`${c.name} の予定を ${fmtDisp(newDate)} に移動しました`);
+      renderCalView();
+      renderList(document.getElementById('search')?document.getElementById('search').value:'');
+    }
+    dragCompanyId=null; srcChip=null;
+  },{passive:true});
+
+  grid.addEventListener('touchcancel',()=>{
+    clearTimeout(holdTimer); holdTimer=null;
+    if(srcChip){ srcChip.classList.remove('dragging'); srcChip=null; }
+    clearDragOver(); removeGhost(); dragging=false; dragCompanyId=null;
+  });
 }
 
 // ── タブ切替 ──
