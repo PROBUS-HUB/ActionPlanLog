@@ -356,15 +356,75 @@ textarea.form-input{height:72px;resize:vertical}
     <div class="sheet-title" id="day-modal-title">予定詳細</div>
     <div id="day-modal-content"></div>
     <div class="sheet-footer" style="margin-top:16px">
+      <button class="sfbtn save" onclick="openCalSchedule(document.getElementById('day-modal-footer-date').textContent);closeDayModal()">＋ この日に登録</button>
       <button class="sfbtn" onclick="closeDayModal()">閉じる</button>
     </div>
+    <span id="day-modal-footer-date" style="display:none"></span>
   </div>
 </div>
 
 <!-- トースト通知 -->
 <div class="toast" id="toast"></div>
 
-<!-- 設定シート -->
+<!-- カレンダーからのスケジュール登録シート -->
+<div class="sheet-overlay" id="cal-sched-modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="cal-sched-title">スケジュールを登録</div>
+
+    <label class="form-label">会社を選択</label>
+    <select class="form-input" id="cs-company" onchange="onCalSchedCompanyChange()">
+      <option value="">— 会社を選択してください —</option>
+    </select>
+
+    <label class="form-label">登録する内容</label>
+    <div class="seg-group" id="cs-mode-group" style="margin-bottom:14px">
+      <button type="button" class="seg-btn active" data-val="next" onclick="setCalSchedMode('next',this)">次回訪問予定日として登録</button>
+      <button type="button" class="seg-btn" data-val="record" onclick="setCalSchedMode('record',this)">訪問記録として登録</button>
+    </div>
+
+    <div id="cs-next-area">
+      <div style="background:var(--blue-lt);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;font-size:13px;color:var(--blue-text)">
+        <span id="cs-date-label" style="font-weight:700"></span> を次回訪問予定日として設定します
+      </div>
+    </div>
+
+    <div id="cs-record-area" style="display:none">
+      <div style="background:var(--blue-lt);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;font-size:13px;color:var(--blue-text)">
+        <span id="cs-date-label2" style="font-weight:700"></span> の訪問記録を追加します
+      </div>
+      <label class="form-label">対応方法</label>
+      <div class="method-group" id="cs-method-group">
+        <button type="button" class="method-btn" data-val="電話" onclick="selectMethod(this,'cs-method-group','cs-type-area')"><span class="method-icon">📞</span>電話</button>
+        <button type="button" class="method-btn" data-val="Zoom" onclick="selectMethod(this,'cs-method-group','cs-type-area')"><span class="method-icon">💻</span>Zoom</button>
+        <button type="button" class="method-btn" data-val="訪問" onclick="selectMethod(this,'cs-method-group','cs-type-area')"><span class="method-icon">🚗</span>訪問</button>
+      </div>
+      <div class="method-sub" id="cs-type-area" style="display:none">
+        <label class="form-label">対応内容の種別</label>
+        <div class="type-group type-group-wide" id="cs-type-group">
+          <button type="button" class="type-btn" data-val="面談" onclick="selectType(this,'cs-type-group')">面談</button>
+          <button type="button" class="type-btn" data-val="商談" onclick="selectType(this,'cs-type-group')">商談</button>
+          <button type="button" class="type-btn" data-val="打ち合わせ" onclick="selectType(this,'cs-type-group')">打ち合わせ</button>
+          <button type="button" class="type-btn" data-val="クレーム" onclick="selectType(this,'cs-type-group')">クレーム</button>
+          <button type="button" class="type-btn" data-val="面接" onclick="selectType(this,'cs-type-group')">面接</button>
+          <button type="button" class="type-btn" data-val="その他" onclick="selectType(this,'cs-type-group')">その他</button>
+        </div>
+      </div>
+      <label class="form-label">メモ</label>
+      <textarea class="form-input" id="cs-memo" placeholder="訪問内容・申し送りなど"></textarea>
+      <label class="form-label">次回訪問予定日</label>
+      <div class="date-wrap">
+        <input id="cs-next" placeholder="YYYY-MM-DD" readonly>
+        <button class="calbtn" onclick="openCal('cs-next')">カレンダー</button>
+      </div>
+    </div>
+
+    <div class="sheet-footer">
+      <button class="sfbtn" onclick="closeCalSched()">キャンセル</button>
+      <button class="sfbtn save" onclick="saveCalSched()">登録する</button>
+    </div>
+  </div>
+</div>
 <div class="sheet-overlay" id="settings-modal">
   <div class="sheet">
     <div class="sheet-handle"></div>
@@ -750,7 +810,6 @@ function renderCalView(){
     const dateNumHtml=ds===todayStr
       ?`<span class="cv-date-num"><span class="cv-today-circle">${d}</span></span>`
       :`<span class="cv-date-num">${d}</span>`;
-    // チップごとにクリックで詳細モーダルを開く（セル全体のonclickは廃止）
     const TYPE_LABEL={'visit':'訪問予定','contract-danger':'契約期限','contract-warn':'要更新','past-visit':'記録済'};
     const evHtml=evs.slice(0,2).map(e=>{
       const shortName=e.name.replace(/株式会社|有限会社|合同会社/g,'').trim();
@@ -762,8 +821,8 @@ function renderCalView(){
     }).join('');
     const moreHtml=evs.length>2
       ?`<span class="cv-more" onclick="event.stopPropagation();openDayModal('${ds}')">他${evs.length-2}件▶</span>`:'';
-    // セル自体のクリックは予定なし日のみ何もしない（タップしても誤動作しない）
-    gridHtml+=`<div class="${cls}" data-date="${ds}">${dateNumHtml}${evHtml}${moreHtml}</div>`;
+    // セル自体タップ → スケジュール登録（チップタップは詳細モーダルへ）
+    gridHtml+=`<div class="${cls}" data-date="${ds}" onclick="openCalSchedule('${ds}')">${dateNumHtml}${evHtml}${moreHtml}</div>`;
   }
   const rem=(7-(first.getDay()+last.getDate())%7)%7;
   for(let i=1;i<=rem;i++) gridHtml+=`<div class="cv-cell other"><span class="cv-date-num">${i}</span></div>`;
@@ -864,11 +923,92 @@ function openDayModal(ds){
   }
   document.getElementById('day-modal').classList.add('open');
   hideChrome();
+  // フッターにスケジュール追加ボタンを埋め込む
+  document.getElementById('day-modal-footer-date').textContent=ds;
 }
 
 function closeDayModal(){ document.getElementById('day-modal').classList.remove('open'); showChrome(); }
 
-// サマリからの訪問予定削除
+// ── カレンダーからのスケジュール登録 ──
+let calSchedDate='', calSchedMode='next';
+function openCalSchedule(ds){
+  if(!ds) return;
+  calSchedDate=ds;
+  calSchedMode='next';
+  // モード初期化
+  document.querySelectorAll('#cs-mode-group .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.val==='next'));
+  document.getElementById('cs-next-area').style.display='block';
+  document.getElementById('cs-record-area').style.display='none';
+  // 日付表示
+  const disp=fmtDisp(ds);
+  document.getElementById('cal-sched-title').textContent=disp+' のスケジュール登録';
+  document.getElementById('cs-date-label').textContent=disp;
+  document.getElementById('cs-date-label2').textContent=disp;
+  // 会社選択肢を構築
+  const sel=document.getElementById('cs-company');
+  sel.innerHTML='<option value="">— 会社を選択してください —</option>';
+  data.companies.forEach(c=>{
+    const opt=document.createElement('option');
+    opt.value=c.id; opt.textContent=c.name; sel.appendChild(opt);
+  });
+  // メモ・次回予定・メソッドリセット
+  document.getElementById('cs-memo').value='';
+  document.getElementById('cs-next').value='';
+  resetMethodGroup('cs-method-group','cs-type-area');
+  document.getElementById('cal-sched-modal').classList.add('open');
+  hideChrome();
+}
+function closeCalSched(){ document.getElementById('cal-sched-modal').classList.remove('open'); showChrome(); }
+function setCalSchedMode(val,btn){
+  calSchedMode=val;
+  document.querySelectorAll('#cs-mode-group .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===val));
+  document.getElementById('cs-next-area').style.display=val==='next'?'block':'none';
+  document.getElementById('cs-record-area').style.display=val==='record'?'block':'none';
+}
+function onCalSchedCompanyChange(){
+  const id=document.getElementById('cs-company').value;
+  if(!id) return;
+  const c=data.companies.find(x=>x.id===id);
+  if(!c) return;
+  // 会社のデフォルト対応方法をプリセット
+  if(c.defaultMethod) setMethodGroup('cs-method-group','cs-type-area',c.defaultMethod,c.defaultType||'');
+  // 次回予定日の自動計算
+  if(c.interval){
+    const nd=parseLocalDate(calSchedDate); nd.setDate(nd.getDate()+(c.interval||30));
+    document.getElementById('cs-next').value=fmtDate(nd);
+  }
+}
+function saveCalSched(){
+  const id=document.getElementById('cs-company').value;
+  if(!id){ alert('会社を選択してください'); return; }
+  const c=data.companies.find(x=>x.id===id);
+  if(!c) return;
+  if(calSchedMode==='next'){
+    // 次回訪問予定日として登録
+    if(c.nextVisit&&c.nextVisit!==calSchedDate){
+      if(!confirm(`「${c.name}」にはすでに次回訪問予定日（${fmtDisp(c.nextVisit)}）が設定されています。\n${fmtDisp(calSchedDate)}に上書きしますか？`)) return;
+    }
+    c.nextVisit=calSchedDate;
+  } else {
+    // 訪問記録として登録
+    if(!c.visits) c.visits=[];
+    c.visits.push({
+      date:calSchedDate,
+      memo:document.getElementById('cs-memo').value,
+      method:getSelected('cs-method-group','.method-btn'),
+      type:getSelected('cs-type-group','.type-btn')
+    });
+    const nv=document.getElementById('cs-next').value;
+    if(nv) c.nextVisit=nv;
+  }
+  save();
+  closeCalSched();
+  renderCalView();
+  renderList(document.getElementById('search')?document.getElementById('search').value:'');
+  showToast(`${c.name} の予定を登録しました`);
+}
+
+// ── サマリからの訪問予定削除 ──
 function clearNextVisitFromSummary(id){
   const c=data.companies.find(x=>x.id===id); if(!c||!c.nextVisit) return;
   if(!confirm(`「${c.name}」の次回訪問予定日（${c.nextVisit}）を削除しますか？`)) return;
