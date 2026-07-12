@@ -252,7 +252,7 @@ textarea.form-input{height:72px;resize:vertical}
 .toggle-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;pointer-events:none}
 .toggle-wrap input:checked~.toggle-thumb{transform:translateX(18px)}
 /* ラベル管理 */
-.label-chip-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.label-chip-list{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;touch-action:manipulation}
 .label-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;font-size:12px;font-weight:600;cursor:default}
 .label-chip-del{border:none;background:none;cursor:pointer;font-size:13px;color:rgba(0,0,0,.4);padding:0 0 0 2px;line-height:1}
 .label-add-row{display:flex;gap:6px;align-items:center;margin-top:6px}
@@ -289,6 +289,77 @@ textarea.form-input{height:72px;resize:vertical}
 /* 確定訪問リスト（会社フォーム内） */
 .confirmed-row{display:grid;grid-template-columns:1fr auto 28px;gap:6px;align-items:center;margin-bottom:6px}
 .confirmed-row input{padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);background:var(--bg);font-family:inherit;outline:none}
+/* ── 経費管理 ── */
+.expense-transport-group{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.expense-transport-btn{padding:10px 4px;border:1.5px solid var(--border2);border-radius:var(--radius-lg);background:var(--bg);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;line-height:1.4}
+.expense-transport-btn .et-icon{font-size:18px;display:block;margin-bottom:3px}
+.expense-transport-btn.active{border-color:var(--blue);background:var(--blue-lt);color:var(--blue)}
+.expense-card{background:var(--bg);border-bottom:1px solid var(--border);padding:12px 14px}
+.expense-card-top{display:flex;align-items:flex-start;gap:10px}
+.expense-type-badge{padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.et-train{background:#EBF3FF;color:#1A56DB}
+.et-bus{background:#DCFCE7;color:#166534}
+.et-taxi{background:#FEF3C7;color:#92400E}
+.et-other{background:#F3F4F6;color:#4B5563}
+.expense-amount{font-size:20px;font-weight:800;color:var(--navy);line-height:1}
+.expense-amount-sub{font-size:10px;color:var(--text3);margin-top:1px}
+.expense-company{font-size:12px;font-weight:600;color:var(--text2);margin-top:4px}
+.expense-meta{font-size:11px;color:var(--text3);margin-top:3px}
+.expense-memo{font-size:12px;color:var(--text2);margin-top:6px;background:var(--bg2);border-radius:var(--radius);padding:6px 8px}
+.expense-receipt{width:64px;height:64px;border-radius:var(--radius);object-fit:cover;border:1px solid var(--border);flex-shrink:0;cursor:pointer}
+.expense-receipt-placeholder{width:64px;height:64px;border-radius:var(--radius);border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text3);flex-shrink:0;text-align:center;line-height:1.3;cursor:pointer}
+.expense-summary-card{background:var(--bg);border-radius:var(--radius-lg);border:1px solid var(--border);padding:12px 14px;margin-bottom:8px}
+.expense-summary-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px}
+.expense-summary-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)}
+.expense-summary-row:last-child{border-bottom:none}
+.expense-summary-label{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px}
+.expense-summary-val{font-size:13px;font-weight:700;color:var(--navy)}
+.expense-total-bar{background:var(--navy);border-radius:var(--radius-lg);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.expense-total-label{font-size:12px;color:#94A3B8;font-weight:600}
+.expense-total-val{font-size:24px;font-weight:800;color:#fff}
+.exp-filter-row{display:flex;gap:6px;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.exp-filter-btn{padding:5px 12px;border-radius:16px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.exp-filter-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+/* 領収書プレビュー */
+.receipt-preview-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center}
+.receipt-preview-overlay.open{display:flex}
+.receipt-preview-overlay img{max-width:92vw;max-height:85vh;border-radius:var(--radius-lg);object-fit:contain}
+.receipt-preview-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+/* ── 経費管理 ── */
+.exp-header{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
+.exp-filter-bar{display:flex;gap:6px;padding:10px 14px 6px;overflow-x:auto;background:var(--bg2);border-bottom:1px solid var(--border)}
+.exp-filter-btn{padding:5px 14px;border-radius:14px;border:1px solid var(--border2);background:var(--bg);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.exp-filter-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.exp-type-group{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.exp-type-btn{padding:10px 4px;border:1.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text2);font-size:10px;font-weight:600;cursor:pointer;text-align:center;line-height:1.6}
+.exp-type-btn.active{border-color:var(--blue);background:var(--blue-lt);color:var(--blue)}
+/* 経費カード */
+.exp-card{background:var(--bg);border-bottom:1px solid var(--border);padding:12px 14px}
+.exp-card-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.exp-type-badge{width:40px;height:40px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.exp-type-badge.train{background:#EBF3FF}
+.exp-type-badge.bus{background:#DCFCE7}
+.exp-type-badge.taxi{background:#FEF3C7}
+.exp-type-badge.shinkansen{background:#FEE2E2}
+.exp-type-badge.other{background:var(--bg2)}
+.exp-amount{font-size:20px;font-weight:800;color:var(--navy)}
+.exp-amount span{font-size:12px;font-weight:600;color:var(--text2)}
+.exp-route{font-size:12px;color:var(--text2);margin-top:2px}
+.exp-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.exp-meta-tag{font-size:11px;background:var(--bg2);color:var(--text2);padding:2px 8px;border-radius:6px;font-weight:500}
+.exp-receipt-thumb{width:56px;height:56px;border-radius:var(--radius);object-fit:cover;border:1px solid var(--border);cursor:pointer;flex-shrink:0}
+/* 月別グループ */
+.exp-month-header{padding:10px 14px 4px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.exp-month-title{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.exp-month-total{font-size:14px;font-weight:800;color:var(--navy);margin-top:2px}
+/* 企業別グループ */
+.exp-company-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.exp-company-name{font-size:13px;font-weight:700;color:var(--navy)}
+.exp-company-total{font-size:14px;font-weight:800;color:var(--blue)}
+/* 追加ボタン */
+.exp-fab{position:fixed;bottom:80px;right:calc(50% - 215px + 14px);z-index:20;width:52px;height:52px;border-radius:50%;background:#059669;border:none;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 14px rgba(5,150,105,.4)}
+@media(max-width:430px){.exp-fab{right:14px}}
+.exp-fab:active{opacity:.85}
 </style>
 </head>
 <body>
@@ -310,6 +381,18 @@ textarea.form-input{height:72px;resize:vertical}
         </div>
       </div>
       <div id="company-list"></div>
+    </div>
+    <!-- 経費管理 -->
+    <div id="tab-expense" style="display:none">
+      <div class="exp-header">
+        <div class="seg-group" id="exp-view-seg" style="flex:1">
+          <button class="seg-btn active" data-val="month" onclick="setExpView('month',this)">月別</button>
+          <button class="seg-btn" data-val="company" onclick="setExpView('company',this)">企業別</button>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--navy)" id="exp-total-label"></div>
+      </div>
+      <div id="exp-filter-bar" class="exp-filter-bar"></div>
+      <div id="expense-list"></div>
     </div>
     <!-- 更新アラート -->
     <div id="tab-alerts" style="display:none">
@@ -341,8 +424,11 @@ textarea.form-input{height:72px;resize:vertical}
     </div>
   </div>
 
-  <div class="fab-wrap">
+  <div class="fab-wrap" id="main-fab">
     <button class="fab" onclick="openAdd()">＋</button>
+  </div>
+  <div id="exp-fab-wrap" style="display:none;position:fixed;bottom:80px;right:calc(50% - 215px + 14px);z-index:20">
+    <button class="exp-fab" onclick="openExpense()">＋</button>
   </div>
 
   <div class="bottom-nav">
@@ -351,6 +437,9 @@ textarea.form-input{height:72px;resize:vertical}
     </button>
     <button class="nav-item" onclick="switchTab('schedule',this)">
       <span>訪問予定</span><div class="nav-pip"></div>
+    </button>
+    <button class="nav-item" onclick="switchTab('expense',this)">
+      <span>経費</span><div class="nav-pip"></div>
     </button>
     <button class="nav-item" onclick="switchTab('alerts',this)">
       <span>アラート</span><div class="nav-pip"></div>
@@ -367,6 +456,18 @@ textarea.form-input{height:72px;resize:vertical}
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="day-modal-title">予定詳細</div>
     <div id="day-modal-content"></div>
+    <!-- 種別切り替えエリア（訪問予定・確定訪問がある場合のみ表示） -->
+    <div id="day-modal-type-switch" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">この予定の種別を変更</div>
+      <div class="visit-type-group">
+        <button type="button" class="visit-type-btn regular" id="dm-switch-unconfirmed" onclick="switchVisitType('unconfirmed')">
+          <span class="vt-icon">🔄</span>未確定訪問<br><span style="font-size:10px;font-weight:400">次回訪問の仮予定</span>
+        </button>
+        <button type="button" class="visit-type-btn confirmed" id="dm-switch-confirmed" onclick="switchVisitType('confirmed')">
+          <span class="vt-icon">📌</span>確定訪問<br><span style="font-size:10px;font-weight:400">アポ・商談確定日</span>
+        </button>
+      </div>
+    </div>
     <div class="sheet-footer" style="margin-top:16px">
       <button class="sfbtn save" onclick="openCalSchedule(document.getElementById('day-modal-footer-date').textContent);closeDayModal()">＋ この日に登録</button>
       <button class="sfbtn" onclick="closeDayModal()">閉じる</button>
@@ -377,6 +478,14 @@ textarea.form-input{height:72px;resize:vertical}
 
 <!-- トースト通知 -->
 <div class="toast" id="toast"></div>
+
+<!-- 領収書プレビュー -->
+<div class="receipt-preview-overlay" id="receipt-preview">
+  <button class="receipt-preview-close" onclick="document.getElementById('receipt-preview').classList.remove('open')">×</button>
+  <img id="receipt-preview-img" src="" alt="領収書">
+</div>
+
+<!-- 経費入力シート -->
 
 <!-- カレンダーからのスケジュール登録シート -->
 <div class="sheet-overlay" id="cal-sched-modal">
@@ -392,7 +501,7 @@ textarea.form-input{height:72px;resize:vertical}
     <label class="form-label">登録する内容</label>
     <div class="visit-type-group" id="cs-visit-type-group">
       <button type="button" class="visit-type-btn regular active" data-val="next" onclick="setCalSchedVisitType('next',this)">
-        <span class="vt-icon">🔄</span>定期訪問予定<br><span style="font-size:10px;font-weight:400">次回訪問日として設定</span>
+        <span class="vt-icon">🔄</span>未確定訪問<br><span style="font-size:10px;font-weight:400">次回訪問の仮予定</span>
       </button>
       <button type="button" class="visit-type-btn confirmed" data-val="confirmed" onclick="setCalSchedVisitType('confirmed',this)">
         <span class="vt-icon">📌</span>確定訪問<br><span style="font-size:10px;font-weight:400">アポ・商談確定日</span>
@@ -445,6 +554,62 @@ textarea.form-input{height:72px;resize:vertical}
     </div>
   </div>
 </div>
+<!-- 経費登録シート -->
+<div class="sheet-overlay" id="expense-modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="exp-modal-title">経費を記録</div>
+    <label class="form-label">日付</label>
+    <div class="date-wrap">
+      <input id="ex-date" placeholder="YYYY-MM-DD" readonly>
+      <button class="calbtn" onclick="openCal('ex-date')">カレンダー</button>
+    </div>
+    <label class="form-label">会社</label>
+    <select class="form-input" id="ex-company">
+      <option value="">— 会社を選択（任意）—</option>
+    </select>
+    <label class="form-label">交通手段</label>
+    <div class="exp-type-group" id="ex-type-group">
+      <button type="button" class="exp-type-btn active" data-val="電車" onclick="selectExpType(this)">🚃<br><span>電車</span></button>
+      <button type="button" class="exp-type-btn" data-val="バス" onclick="selectExpType(this)">🚌<br><span>バス</span></button>
+      <button type="button" class="exp-type-btn" data-val="タクシー" onclick="selectExpType(this)">🚕<br><span>タクシー</span></button>
+      <button type="button" class="exp-type-btn" data-val="新幹線" onclick="selectExpType(this)">🚅<br><span>新幹線</span></button>
+      <button type="button" class="exp-type-btn" data-val="その他" onclick="selectExpType(this)">🎫<br><span>その他</span></button>
+    </div>
+    <label class="form-label">区間・経路</label>
+    <input class="form-input" id="ex-route" placeholder="例: 渋谷→新宿">
+    <label class="form-label">金額（円）</label>
+    <input class="form-input" id="ex-amount" type="number" min="0" placeholder="0">
+    <label class="form-label">メモ</label>
+    <input class="form-input" id="ex-memo" placeholder="備考など">
+    <label class="form-label">領収書写真</label>
+    <div id="ex-receipt-preview" style="margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <label class="sfbtn" style="flex:1;text-align:center;cursor:pointer;padding:10px 0;font-size:13px">
+        📷 カメラで撮影
+        <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handleReceiptPhoto(event)">
+      </label>
+      <label class="sfbtn" style="flex:1;text-align:center;cursor:pointer;padding:10px 0;font-size:13px">
+        🖼 アルバムから
+        <input type="file" accept="image/*" style="display:none" onchange="handleReceiptPhoto(event)">
+      </label>
+    </div>
+    <div class="sheet-footer">
+      <button class="sfbtn" onclick="closeExpense()">キャンセル</button>
+      <button class="sfbtn save" onclick="saveExpense()">記録する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 領収書拡大表示 -->
+<div class="sheet-overlay" id="receipt-viewer" style="background:rgba(0,0,0,0.85);align-items:center">
+  <div style="width:100%;max-width:430px;padding:16px">
+    <img id="receipt-img" style="width:100%;border-radius:var(--radius-lg)">
+    <button onclick="document.getElementById('receipt-viewer').classList.remove('open');showChrome()"
+      style="width:100%;margin-top:12px;padding:12px;border:none;border-radius:var(--radius);background:#fff;color:var(--navy);font-size:14px;font-weight:700;cursor:pointer">閉じる</button>
+  </div>
+</div>
+
 <div class="sheet-overlay" id="settings-modal">
   <div class="sheet">
     <div class="sheet-handle"></div>
@@ -752,12 +917,34 @@ function nextBadge(c){
 }
 function elapsedBlock(c){
   const lv=lastVisit(c), sd=sinceDays(c), interval=c.interval||30;
-  if(!lv) return `<div class="elapsed-block"><div class="elapsed-num" style="color:var(--text3);font-size:20px">未記録</div><div><div class="elapsed-title">前回訪問からの経過</div><div class="elapsed-since">訪問記録がありません</div></div></div>`;
-  const rem=interval-sd;
-  let numCls='elapsed-num', nextCls='next-ok', nextTxt='';
-  if(rem<0){ numCls='elapsed-num danger'; nextCls='next-danger'; nextTxt=`次回訪問が <b>${Math.abs(rem)}日</b> 超過`; }
-  else if(rem<=7){ numCls='elapsed-num warn'; nextCls='next-warn'; nextTxt=`次回まで あと <b>${rem}日</b>`; }
-  else nextTxt=`次回まで あと <b>${rem}日</b>`;
+  // 次の予定表示（未確定・確定まとめて）
+  const nextScheduleHtml=(()=>{
+    const parts=[];
+    if(c.nextVisit){
+      const d=daysDiff(c.nextVisit);
+      const cls=d<0?'next-danger':d<=7?'next-warn':'next-ok';
+      parts.push(`<div class="elapsed-next ${cls}">🔄 未確定: ${fmtDisp(c.nextVisit)}（${d<0?Math.abs(d)+'日超過':'あと'+d+'日'}）</div>`);
+    }
+    (c.confirmedVisits||[]).sort((a,b)=>a.date.localeCompare(b.date)).forEach(cv=>{
+      const d=daysDiff(cv.date);
+      const cls=d<0?'next-danger':d<=7?'next-warn':'next-ok';
+      parts.push(`<div class="elapsed-next ${cls}">📌 確定: ${fmtDisp(cv.date)}${cv.memo?' ('+cv.memo+')':''}（${d<0?Math.abs(d)+'日超過':'あと'+d+'日'}）</div>`);
+    });
+    if(!parts.length) return '<div class="elapsed-next" style="color:var(--text3)">次回予定なし</div>';
+    return parts.join('');
+  })();
+
+  if(!lv) return `<div class="elapsed-block">
+    <div><div class="elapsed-num" style="color:var(--text3);font-size:20px">未記録</div><div style="font-size:10px;font-weight:600;color:var(--text3);text-align:center;margin-top:2px">日経過</div></div>
+    <div class="elapsed-right">
+      <div class="elapsed-title">前回訪問からの経過</div>
+      <div class="elapsed-since">訪問記録がありません</div>
+      ${nextScheduleHtml}
+    </div>
+  </div>`;
+
+  const rem=c.nextVisit?daysDiff(c.nextVisit):null;
+  const numCls=rem!==null&&rem<0?'elapsed-num danger':rem!==null&&rem<=7?'elapsed-num warn':'elapsed-num';
   return `<div class="elapsed-block">
     <div>
       <div class="${numCls}">${sd}</div>
@@ -767,7 +954,7 @@ function elapsedBlock(c){
       <div class="elapsed-title">前回訪問からの経過日数</div>
       <div class="elapsed-since">前回: ${lv.date}</div>
       ${lv.method?`<div style="margin-top:4px">${methodTagHtml(lv.method,lv.type)}</div>`:''}
-      <div class="elapsed-next ${nextCls}">${nextTxt}</div>
+      ${nextScheduleHtml}
     </div>
   </div>`;
 }
@@ -922,44 +1109,115 @@ function openDayModal(ds){
   document.getElementById('day-modal-title').textContent=parseInt(p[1])+'月'+parseInt(p[2])+'日（'+DOW_JP[dt.getDay()]+'）の予定';
   const evMap=buildEventMap();
   const evs=evMap[ds]||[];
-  if(!evs.length){ document.getElementById('day-modal-content').innerHTML='<div style="color:var(--text3);font-size:13px;padding:8px 0">この日の予定はありません</div>'; }
-  else {
-    document.getElementById('day-modal-content').innerHTML=evs.map(e=>{
-      let barCls='day-type-bar bar-past', labelTxt='過去の訪問記録', actHtml='';
+
+  if(!evs.length){
+    document.getElementById('day-modal-content').innerHTML='<div style="color:var(--text3);font-size:13px;padding:8px 0">この日の予定はありません</div>';
+  } else {
+    document.getElementById('day-modal-content').innerHTML=evs.map((e,ei)=>{
+      const c=data.companies.find(x=>x.id===e.id);
+      let barCls='day-type-bar bar-past', labelTxt='過去の訪問記録', actHtml='', memoHtml='';
+
+      // メモ・詳細情報を取得
       if(e.type==='visit'){
-        barCls='day-type-bar bar-visit'; labelTxt='定期訪問予定';
+        barCls='day-type-bar bar-visit'; labelTxt='🔄 未確定訪問（定期予定）';
+        const currentMemo=c&&c.visitMemo||'';
+        memoHtml=`
+          <div style="margin-top:10px">
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">メモ</div>
+            <textarea id="dm-memo-${ei}" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;color:var(--text);background:var(--bg);font-family:inherit;resize:vertical;min-height:60px;outline:none"
+              placeholder="メモを入力...">${currentMemo}</textarea>
+            <button onclick="saveDayMemo('${e.id}','visit','','dm-memo-${ei}')"
+              style="width:100%;margin-top:4px;padding:8px 0;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer">メモを保存</button>
+          </div>`;
         actHtml=`<div style="display:flex;gap:6px;margin-top:10px">
           <button class="abtn primary" style="padding:10px 0" onclick="closeDayModal();openVisit('${e.id}')">訪問を記録する</button>
           <button class="abtn" style="padding:10px 0;color:#991B1B;border-color:#FCA5A5;flex:0 0 64px" onclick="clearNextVisitFromDay('${e.id}')">削除</button>
         </div>`;
       } else if(e.type==='confirmed'){
-        barCls='day-type-bar'; labelTxt='確定訪問';
+        barCls='day-type-bar'; labelTxt='📌 確定訪問';
+        const cv=(c&&c.confirmedVisits||[]).find(x=>x.date===ds);
+        const currentMemo=cv?cv.memo||'':'';
+        memoHtml=`
+          <div style="margin-top:10px">
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">メモ・内容</div>
+            <textarea id="dm-memo-${ei}" style="width:100%;padding:8px 10px;border:1px solid #C4B5FD;border-radius:var(--radius);font-size:13px;color:var(--text);background:var(--bg);font-family:inherit;resize:vertical;min-height:60px;outline:none"
+              placeholder="商談内容・確定事項など...">${currentMemo}</textarea>
+            <button onclick="saveDayMemo('${e.id}','confirmed','${ds}','dm-memo-${ei}')"
+              style="width:100%;margin-top:4px;padding:8px 0;border:1px solid #C4B5FD;border-radius:var(--radius);background:#EDE9FE;color:#5B21B6;font-size:12px;font-weight:600;cursor:pointer">メモを保存</button>
+          </div>`;
         actHtml=`<div style="display:flex;gap:6px;margin-top:10px">
           <button class="abtn primary" style="padding:10px 0;background:#7C3AED;border-color:#7C3AED" onclick="closeDayModal();openVisit('${e.id}')">訪問を記録する</button>
           <button class="abtn" style="padding:10px 0;color:#991B1B;border-color:#FCA5A5;flex:0 0 64px" onclick="deleteConfirmedVisit('${e.id}','${e.sub}')">削除</button>
         </div>`;
       } else if(e.type==='contract-danger'){
-        barCls='day-type-bar bar-contract'; labelTxt='契約期限切れ';
+        barCls='day-type-bar bar-contract'; labelTxt='⚠️ 契約期限切れ';
         actHtml=`<div style="margin-top:10px"><button class="abtn" style="padding:9px 0;width:100%" onclick="closeDayModal();openEdit('${e.id}')">契約情報を編集する</button></div>`;
       } else if(e.type==='contract-warn'){
-        barCls='day-type-bar bar-contract-warn'; labelTxt='契約更新が必要';
+        barCls='day-type-bar bar-contract-warn'; labelTxt='🔔 契約更新が必要';
         actHtml=`<div style="margin-top:10px"><button class="abtn" style="padding:9px 0;width:100%" onclick="closeDayModal();openEdit('${e.id}')">契約情報を編集する</button></div>`;
+      } else if(e.type==='past-visit'){
+        // 過去訪問の記録メモを表示
+        const visitRec=(c&&c.visits||[]).find(v=>v.date===ds);
+        if(visitRec){
+          const methodTags=visitRec.method?methodTagHtml(visitRec.method,visitRec.type):'';
+          memoHtml=`
+            <div style="margin-top:8px">
+              ${methodTags}
+              ${visitRec.memo?`<div style="background:var(--bg2);border-radius:var(--radius);padding:8px 10px;font-size:12px;color:var(--text2);line-height:1.6">${visitRec.memo}</div>`:'<div style="font-size:12px;color:var(--text3)">メモなし</div>'}
+            </div>`;
+        }
       }
+
+      // 会社情報サマリ
+      const companySub=c?`
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
+          ${c.contact?`<span style="font-size:11px;color:var(--text2)">👤 ${c.contact}</span>`:''}
+          ${c.defaultMethod?`<span style="font-size:11px;background:var(--blue-lt);color:var(--blue);padding:1px 7px;border-radius:6px;font-weight:600">${c.defaultMethod}</span>`:''}
+        </div>`:'';
+
       return `<div class="day-detail-item">
         <div class="${barCls}" style="${e.type==='confirmed'?'background:#7C3AED':''}"></div>
-        <div style="flex:1">
+        <div style="flex:1;min-width:0">
           <div class="day-detail-label">${labelTxt}</div>
           <div class="day-detail-name">${e.name}</div>
-          <div class="day-detail-sub">${e.sub||''}</div>
+          ${companySub}
+          ${e.sub&&e.type!=='visit'&&e.type!=='confirmed'?`<div class="day-detail-sub">${e.sub}</div>`:''}
+          ${memoHtml}
           ${actHtml}
         </div>
       </div>`;
     }).join('');
   }
+
   document.getElementById('day-modal').classList.add('open');
   hideChrome();
-  // フッターにスケジュール追加ボタンを埋め込む
+  // 種別切り替えUI
+  const switchEl=document.getElementById('day-modal-type-switch');
+  const hasVisit=evs.some(e=>e.type==='visit'||e.type==='confirmed');
+  switchEl.style.display=hasVisit?'block':'none';
+  if(hasVisit){
+    const currentType=evs.find(e=>e.type==='visit'||e.type==='confirmed');
+    const isConfirmed=currentType&&currentType.type==='confirmed';
+    document.getElementById('dm-switch-unconfirmed').classList.toggle('active',!isConfirmed);
+    document.getElementById('dm-switch-confirmed').classList.toggle('active',isConfirmed);
+    switchEl.dataset.companyId=currentType?currentType.id:'';
+    switchEl.dataset.date=ds;
+  }
   document.getElementById('day-modal-footer-date').textContent=ds;
+}
+
+// メモ保存（詳細シートから）
+function saveDayMemo(companyId, type, date, inputId){
+  const c=data.companies.find(x=>x.id===companyId); if(!c) return;
+  const memo=document.getElementById(inputId).value;
+  if(type==='visit'){
+    c.visitMemo=memo;
+  } else if(type==='confirmed'){
+    const cv=(c.confirmedVisits||[]).find(x=>x.date===date);
+    if(cv) cv.memo=memo;
+  }
+  save();
+  showToast('メモを保存しました');
 }
 
 function closeDayModal(){ document.getElementById('day-modal').classList.remove('open'); showChrome(); }
@@ -1005,7 +1263,47 @@ function setCalSchedVisitType(val,btn){
   }
 }
 
-// ── 確定訪問をbuildEventMapに追加 ──
+// ── 日詳細シートからの種別切り替え ──
+function switchVisitType(newType){
+  const switchEl=document.getElementById('day-modal-type-switch');
+  const companyId=switchEl.dataset.companyId;
+  const date=switchEl.dataset.date;
+  if(!companyId||!date) return;
+  const c=data.companies.find(x=>x.id===companyId); if(!c) return;
+
+  const isCurrentlyConfirmed=(c.confirmedVisits||[]).some(cv=>cv.date===date);
+  const isCurrentlyUnconfirmed=c.nextVisit===date;
+
+  if(newType==='confirmed'&&isCurrentlyConfirmed) return; // 変化なし
+  if(newType==='unconfirmed'&&isCurrentlyUnconfirmed) return; // 変化なし
+
+  if(!confirm(`「${c.name}」の ${fmtDisp(date)} の予定を${newType==='confirmed'?'確定訪問':'未確定訪問'}に変更しますか？`)) return;
+
+  if(newType==='confirmed'){
+    // 未確定→確定：nextVisitを削除して confirmedVisits に追加
+    if(c.nextVisit===date) c.nextVisit='';
+    if(!c.confirmedVisits) c.confirmedVisits=[];
+    if(!c.confirmedVisits.some(cv=>cv.date===date)){
+      c.confirmedVisits.push({date, memo:'確定訪問'});
+    }
+  } else {
+    // 確定→未確定：confirmedVisitsから削除して nextVisit にセット
+    c.confirmedVisits=(c.confirmedVisits||[]).filter(cv=>cv.date!==date);
+    c.nextVisit=date;
+  }
+  save();
+  showToast(`${c.name} の予定を${newType==='confirmed'?'確定訪問':'未確定訪問'}に変更しました`);
+  // ボタンのactive状態を更新
+  document.getElementById('dm-switch-unconfirmed').classList.toggle('active', newType==='unconfirmed');
+  document.getElementById('dm-switch-confirmed').classList.toggle('active', newType==='confirmed');
+  // コンテンツと一覧を再描画（シートはそのまま）
+  renderCalView();
+  renderList(document.getElementById('search')?document.getElementById('search').value:'');
+  // 詳細コンテンツも更新
+  openDayModal(date);
+}
+
+// ── カレンダーからのスケジュール登録 ──
 let calSchedDate='', calSchedMode='next';
 function openCalSchedule(ds){
   if(!ds) return;
@@ -1201,19 +1499,225 @@ function initCalDrag(){
   });
 }
 
+// ── 経費管理 ──
+let expenses=JSON.parse(localStorage.getItem('dorakuru_expenses')||'[]');
+function saveExpenses(){ localStorage.setItem('dorakuru_expenses',JSON.stringify(expenses)); }
+let expView='month', expFilter='all', expReceiptBase64='', editExpId=null;
+
+const EXP_TYPE_META={
+  '電車':{icon:'🚃',cls:'train'},
+  'バス':{icon:'🚌',cls:'bus'},
+  'タクシー':{icon:'🚕',cls:'taxi'},
+  '新幹線':{icon:'🚅',cls:'shinkansen'},
+  'その他':{icon:'🎫',cls:'other'}
+};
+
+function setExpView(val,btn){
+  expView=val; expFilter='all';
+  document.querySelectorAll('#exp-view-seg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===val));
+  renderExpenses();
+}
+
+function renderExpenses(){
+  const tab=document.getElementById('tab-expense'); if(!tab) return;
+  // フィルターバー
+  const filterBar=document.getElementById('exp-filter-bar');
+  if(expView==='month'){
+    const months=[...new Set(expenses.map(e=>e.date.slice(0,7)))].sort().reverse();
+    const allBtn=`<button class="exp-filter-btn${expFilter==='all'?' active':''}" onclick="setExpFilter('all')">すべて</button>`;
+    const mBtns=months.map(m=>`<button class="exp-filter-btn${expFilter===m?' active':''}" onclick="setExpFilter('${m}')">${parseInt(m.split('-')[1])}月</button>`);
+    filterBar.innerHTML=[allBtn,...mBtns].join('');
+  } else {
+    const companies=[...new Set(expenses.map(e=>e.companyId||'__none__'))];
+    const allBtn=`<button class="exp-filter-btn${expFilter==='all'?' active':''}" onclick="setExpFilter('all')">すべて</button>`;
+    const cBtns=companies.map(cid=>{
+      const c=data.companies.find(x=>x.id===cid);
+      const name=c?c.name.replace(/株式会社|有限会社|合同会社/g,'').trim():'未選択';
+      return `<button class="exp-filter-btn${expFilter===cid?' active':''}" onclick="setExpFilter('${cid}')">${name}</button>`;
+    });
+    filterBar.innerHTML=[allBtn,...cBtns].join('');
+  }
+  // 対象を絞る
+  let filtered=expenses.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  if(expFilter!=='all'){
+    if(expView==='month') filtered=filtered.filter(e=>e.date.startsWith(expFilter));
+    else filtered=filtered.filter(e=>(e.companyId||'__none__')===expFilter);
+  }
+  // 合計
+  const total=filtered.reduce((s,e)=>s+(e.amount||0),0);
+  document.getElementById('exp-total-label').textContent='合計 ¥'+total.toLocaleString();
+
+  if(!filtered.length){
+    document.getElementById('expense-list').innerHTML='<div class="empty"><div class="empty-icon">🧾</div>経費記録がありません<br>右下の＋から追加してください</div>';
+    return;
+  }
+
+  // グループ化
+  let html='';
+  if(expView==='month'){
+    const grouped={};
+    filtered.forEach(e=>{ const m=e.date.slice(0,7); if(!grouped[m]) grouped[m]=[]; grouped[m].push(e); });
+    Object.keys(grouped).sort().reverse().forEach(m=>{
+      const grpTotal=grouped[m].reduce((s,e)=>s+(e.amount||0),0);
+      const [y,mo]=m.split('-');
+      html+=`<div class="exp-month-header"><div class="exp-month-title">${y}年 ${parseInt(mo)}月</div><div class="exp-month-total">¥${grpTotal.toLocaleString()}</div></div>`;
+      html+=grouped[m].map(e=>expCardHtml(e)).join('');
+    });
+  } else {
+    const grouped={};
+    filtered.forEach(e=>{ const k=e.companyId||'__none__'; if(!grouped[k]) grouped[k]=[]; grouped[k].push(e); });
+    Object.keys(grouped).forEach(cid=>{
+      const c=data.companies.find(x=>x.id===cid);
+      const name=c?c.name:'会社未選択';
+      const grpTotal=grouped[cid].reduce((s,e)=>s+(e.amount||0),0);
+      html+=`<div class="exp-company-header"><div class="exp-company-name">${name}</div><div class="exp-company-total">¥${grpTotal.toLocaleString()}</div></div>`;
+      html+=grouped[cid].map(e=>expCardHtml(e)).join('');
+    });
+  }
+  document.getElementById('expense-list').innerHTML=html;
+}
+
+function setExpFilter(val){ expFilter=val; renderExpenses(); }
+
+function expCardHtml(e){
+  const meta=EXP_TYPE_META[e.transportType]||EXP_TYPE_META['その他'];
+  const c=data.companies.find(x=>x.id===e.companyId);
+  const receiptHtml=e.receipt?`<img src="${e.receipt}" class="exp-receipt-thumb" onclick="viewReceipt('${e.id}')" alt="領収書">`:'' ;
+  return `<div class="exp-card">
+    <div class="exp-card-top">
+      <div class="exp-type-badge ${meta.cls}">${meta.icon}</div>
+      <div style="flex:1">
+        <div class="exp-amount">¥${(e.amount||0).toLocaleString()}<span> （${e.transportType||'その他'}）</span></div>
+        ${e.route?`<div class="exp-route">📍 ${e.route}</div>`:''}
+        <div class="exp-meta">
+          <span class="exp-meta-tag">📅 ${e.date}</span>
+          ${c?`<span class="exp-meta-tag">🏢 ${c.name.replace(/株式会社|有限会社|合同会社/g,'').trim()}</span>`:''}
+          ${e.memo?`<span class="exp-meta-tag">💬 ${e.memo}</span>`:''}
+        </div>
+      </div>
+      ${receiptHtml}
+    </div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button class="abtn" onclick="editExpense('${e.id}')">編集</button>
+      <button class="abtn" style="color:#991B1B;border-color:#FCA5A5" onclick="deleteExpense('${e.id}')">削除</button>
+    </div>
+  </div>`;
+}
+
+function openExpense(prefillDate){
+  editExpId=null; expReceiptBase64='';
+  document.getElementById('exp-modal-title').textContent='経費を記録';
+  document.getElementById('ex-date').value=prefillDate||fmtDate(new Date());
+  document.getElementById('ex-amount').value='';
+  document.getElementById('ex-route').value='';
+  document.getElementById('ex-memo').value='';
+  document.getElementById('ex-receipt-preview').innerHTML='';
+  // 会社セレクト構築
+  const sel=document.getElementById('ex-company');
+  sel.innerHTML='<option value="">— 会社を選択（任意）—</option>';
+  data.companies.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.name; sel.appendChild(o); });
+  // 交通手段リセット
+  document.querySelectorAll('#ex-type-group .exp-type-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  document.getElementById('expense-modal').classList.add('open');
+  hideChrome();
+}
+
+function editExpense(id){
+  const e=expenses.find(x=>x.id===id); if(!e) return;
+  editExpId=id; expReceiptBase64=e.receipt||'';
+  document.getElementById('exp-modal-title').textContent='経費を編集';
+  document.getElementById('ex-date').value=e.date||'';
+  document.getElementById('ex-amount').value=e.amount||'';
+  document.getElementById('ex-route').value=e.route||'';
+  document.getElementById('ex-memo').value=e.memo||'';
+  const sel=document.getElementById('ex-company');
+  sel.innerHTML='<option value="">— 会社を選択（任意）—</option>';
+  data.companies.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.name; sel.appendChild(o); });
+  sel.value=e.companyId||'';
+  document.querySelectorAll('#ex-type-group .exp-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===e.transportType));
+  const prev=document.getElementById('ex-receipt-preview');
+  prev.innerHTML=e.receipt?`<img src="${e.receipt}" style="width:100%;max-height:180px;object-fit:contain;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:4px">`:'' ;
+  document.getElementById('expense-modal').classList.add('open');
+  hideChrome();
+}
+
+function closeExpense(){ document.getElementById('expense-modal').classList.remove('open'); showChrome(); }
+
+function selectExpType(btn){
+  document.querySelectorAll('#ex-type-group .exp-type-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+// 旧シートとの互換用エイリアス
+function selectTransport(btn){ selectExpType(btn); }
+function clearReceiptPreview(){
+  expReceiptBase64='';
+  const prev=document.getElementById('ex-receipt-preview');
+  if(prev) prev.innerHTML='';
+}
+function handleReceiptFile(event){ handleReceiptPhoto(event); }
+
+function handleReceiptPhoto(event){
+  const file=event.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    expReceiptBase64=ev.target.result;
+    document.getElementById('ex-receipt-preview').innerHTML=
+      `<img src="${expReceiptBase64}" style="width:100%;max-height:180px;object-fit:contain;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:4px">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveExpense(){
+  const date=document.getElementById('ex-date').value;
+  if(!date){ alert('日付を入力してください'); return; }
+  const amount=parseInt(document.getElementById('ex-amount').value)||0;
+  if(!amount){ alert('金額を入力してください'); return; }
+  const activeBtn=document.querySelector('#ex-type-group .exp-type-btn.active');
+  const transportType=activeBtn?activeBtn.dataset.val:'その他';
+  const obj={
+    date, amount, transportType,
+    route:document.getElementById('ex-route').value,
+    memo:document.getElementById('ex-memo').value,
+    companyId:document.getElementById('ex-company').value||'',
+    receipt:expReceiptBase64||''
+  };
+  if(editExpId){ const idx=expenses.findIndex(x=>x.id===editExpId); if(idx>=0) expenses[idx]={...expenses[idx],...obj}; }
+  else expenses.push({id:'ex'+Date.now(),...obj});
+  saveExpenses(); closeExpense(); renderExpenses();
+  showToast('経費を記録しました');
+}
+
+function deleteExpense(id){
+  const e=expenses.find(x=>x.id===id); if(!e) return;
+  if(!confirm(`${e.date} ¥${(e.amount||0).toLocaleString()}（${e.transportType}）を削除しますか？`)) return;
+  expenses=expenses.filter(x=>x.id!==id);
+  saveExpenses(); renderExpenses();
+}
+
+function viewReceipt(id){
+  const e=expenses.find(x=>x.id===id); if(!e||!e.receipt) return;
+  document.getElementById('receipt-img').src=e.receipt;
+  document.getElementById('receipt-viewer').classList.add('open');
+  hideChrome();
+}
+
 // ── タブ切替 ──
 function switchTab(tab,el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   el.classList.add('active');
-  ['list','alerts','calendar','schedule'].forEach(t=>{
-    const el=document.getElementById('tab-'+t);
-    if(el) el.style.display='none';
+  ['list','alerts','calendar','schedule','expense'].forEach(t=>{
+    const el2=document.getElementById('tab-'+t); if(el2) el2.style.display='none';
   });
-  document.getElementById('tab-'+tab).style.display='block';
+  const tabEl=document.getElementById('tab-'+tab);
+  if(tabEl) tabEl.style.display='block';
+  const mainFab=document.getElementById('main-fab');
+  const expFab=document.getElementById('exp-fab-wrap');
+  if(tab==='expense'){ if(mainFab) mainFab.style.display='none'; if(expFab) expFab.style.display='block'; renderExpenses(); }
+  else { if(mainFab) mainFab.style.display='block'; if(expFab) expFab.style.display='none'; }
   if(tab==='alerts') renderAlerts();
   else if(tab==='calendar') renderCalView();
   else if(tab==='schedule') renderSchedule();
-  else renderList(document.getElementById('search').value);
+  else if(tab==='list') renderList(document.getElementById('search')?document.getElementById('search').value:'');
 }
 
 // ── 会社一覧 ──
@@ -1411,27 +1915,73 @@ function addLabel(){
   settingChanged('ラベルを追加しました');
 }
 function deleteLabel(id){
-  if(!confirm('このラベルを削除しますか？\n会社に設定されているラベルも解除されます。')) return;
   labels=labels.filter(l=>l.id!==id);
   data.companies.forEach(c=>{ if(c.labelId===id) c.labelId=''; });
   saveLabels(); save();
   renderLabelChips();
   renderList(document.getElementById('search')?document.getElementById('search').value:'');
+  settingChanged('ラベルを削除しました');
 }
 function renderLabelChips(){
   const el=document.getElementById('label-chip-list');
   if(!el) return;
-  if(!labels.length){ el.innerHTML='<div style="font-size:12px;color:var(--text3)">ラベルがまだありません</div>'; return; }
-  el.innerHTML=labels.map(l=>`
-    <span class="label-chip" style="background:${l.color}22;color:${l.color};border:1.5px solid ${l.color}">
-      ${l.name}
-      <button class="label-chip-del" onclick="deleteLabel('${l.id}')">×</button>
-    </span>`).join('');
+  el.innerHTML='';
+  if(!labels.length){
+    const msg=document.createElement('div');
+    msg.style.cssText='font-size:12px;color:var(--text3)';
+    msg.textContent='ラベルがまだありません';
+    el.appendChild(msg);
+    return;
+  }
+  labels.forEach(l=>{
+    const wrap=document.createElement('div');
+    wrap.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:6px 10px 6px 14px;border-radius:10px;background:'+l.color+'22;color:'+l.color+';border:1.5px solid '+l.color+';font-size:12px;font-weight:600;margin:3px 3px 3px 0';
+    const txt=document.createTextNode(l.name);
+    wrap.appendChild(txt);
+    const btn=document.createElement('button');
+    btn.textContent='×';
+    btn.setAttribute('type','button');
+    btn.style.cssText=[
+      'border:none',
+      'background:'+l.color+'44',
+      'border-radius:50%',
+      'cursor:pointer',
+      'font-size:13px',
+      'font-weight:700',
+      'color:'+l.color,
+      'width:22px',
+      'height:22px',
+      'min-width:22px',
+      'display:inline-flex',
+      'align-items:center',
+      'justify-content:center',
+      'flex-shrink:0',
+      'line-height:1',
+      '-webkit-tap-highlight-color:rgba(0,0,0,0)',
+      'touch-action:manipulation'
+    ].join(';');
+    const handler=function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      deleteLabel(l.id);
+    };
+    btn.addEventListener('click', handler);
+    btn.addEventListener('touchend', handler);
+    wrap.appendChild(btn);
+    el.appendChild(wrap);
+  });
 }
 function renderColorPicks(){
   const el=document.getElementById('color-picks'); if(!el) return;
-  el.innerHTML=PRESET_COLORS.map(c=>`
-    <div class="color-pick ${c===newLabelColor?'active':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`).join('');
+  el.innerHTML='';
+  PRESET_COLORS.forEach(col=>{
+    const div=document.createElement('div');
+    div.className='color-pick'+(col===newLabelColor?' active':'');
+    div.style.background=col;
+    div.addEventListener('click',()=>pickColor(col));
+    div.addEventListener('touchend',e=>{e.preventDefault();pickColor(col);});
+    el.appendChild(div);
+  });
 }
 function pickColor(c){ newLabelColor=c; renderColorPicks(); }
 
@@ -1690,13 +2240,22 @@ function deleteCompany(id){
 
 // ── 入出力 ──
 function exportData(){
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({companies:data.companies,expenses},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`visit_${fmtDate(new Date())}.json`; a.click();
 }
 function importData(e){
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
-  r.onload=ev=>{ try{ data=JSON.parse(ev.target.result); save(); renderList(); alert('読み込みました'); } catch{ alert('読み込みに失敗しました'); } };
+  r.onload=ev=>{
+    try{
+      const parsed=JSON.parse(ev.target.result);
+      if(parsed.companies){ data.companies=parsed.companies; save(); }
+      else{ data=parsed; save(); }
+      if(Array.isArray(parsed.expenses)){ expenses=parsed.expenses; saveExpenses(); }
+      renderList(); renderCalView();
+      alert('読み込みました');
+    } catch{ alert('読み込みに失敗しました'); }
+  };
   r.readAsText(f);
 }
 
